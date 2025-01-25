@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace MysticIsle.DreamEngine.Pool
+namespace MysticIsle.DreamEngine.Core
 {
     /// <summary>
     /// 游戏对象池管理器
