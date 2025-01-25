@@ -1,63 +1,66 @@
 ﻿using System;
-using System.Collections;
+using System.Threading.Tasks;
 
 namespace MysticIsle.DreamEngine.States
 {
     public class State
     {
         private readonly IState stateImplementation;
-        private readonly Func<IEnumerator> onEnter;
-        private readonly Action onExit;
-        private readonly Func<IEnumerator> onUpdate;
+        private readonly Func<Task> onEnter;
+        private readonly Func<Task> onExit;
+        private readonly Func<Task> onUpdate;
 
         public State(IState state)
         {
             stateImplementation = state;
         }
 
-        public State(Func<IEnumerator> enter, Action exit, Func<IEnumerator> update)
+        public State(Func<Task> enter, Func<Task> exit, Func<Task> update)
         {
             onEnter = enter;
             onExit = exit;
             onUpdate = update;
         }
 
-        public IEnumerator Enter()
+        public async Task Enter()
         {
             if (stateImplementation != null)
             {
-                stateImplementation.Enter();
-                yield break;
+                await stateImplementation.OnEnter();
+                return;
             }
 
             if (onEnter != null)
             {
-                yield return onEnter();
+                await onEnter();
             }
         }
 
-        public void Exit()
+        public async Task Exit()
         {
             if (stateImplementation != null)
             {
-                stateImplementation.Exit();
+                await stateImplementation.OnExit();
                 return;
             }
 
-            onExit?.Invoke();
+            if (onExit != null)
+            {
+                await onExit();
+            }
         }
 
-        public IEnumerator Update()
+        public async Task Update()
         {
             if (stateImplementation != null)
             {
-                stateImplementation.Update();
-                yield break;
+                await stateImplementation.OnUpdate();
+                return;
             }
 
             if (onUpdate != null)
             {
-                yield return onUpdate();
+                await onUpdate();
             }
         }
     }

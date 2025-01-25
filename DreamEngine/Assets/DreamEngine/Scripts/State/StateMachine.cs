@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace MysticIsle.DreamEngine.States
@@ -7,8 +8,6 @@ namespace MysticIsle.DreamEngine.States
     {
         private State currentState;
         private readonly Dictionary<string, State> states = new();
-
-        private Coroutine currentCoroutine;
 
         /// <summary>
         /// 添加状态到状态机
@@ -22,23 +21,18 @@ namespace MysticIsle.DreamEngine.States
         }
 
         /// <summary>
-        /// 切换到指定状态，支持协程
+        /// 切换到指定状态
         /// </summary>
-        public void SwitchState(string name)
+        public async Task SwitchState(string name)
         {
             if (states.ContainsKey(name))
             {
-                currentState?.Exit(); // 退出当前状态
-                currentState = states[name];
-
-                // 如果有当前协程在运行，停止它
-                if (currentCoroutine != null)
+                if (currentState != null)
                 {
-                    StopCoroutine(currentCoroutine);
+                    await currentState.Exit(); // 退出当前状态
                 }
-
-                // 进入新状态并运行协程
-                currentCoroutine = StartCoroutine(currentState.Enter());
+                currentState = states[name];
+                await currentState.Enter(); // 进入新状态
             }
             else
             {
@@ -47,13 +41,13 @@ namespace MysticIsle.DreamEngine.States
         }
 
         /// <summary>
-        /// 更新当前状态，支持协程
+        /// 更新当前状态
         /// </summary>
-        public void UpdateState()
+        public async Task UpdateState()
         {
-            if (currentState != null && currentCoroutine == null)
+            if (currentState != null)
             {
-                currentCoroutine = StartCoroutine(currentState.Update());
+                await currentState.Update();
             }
         }
     }
