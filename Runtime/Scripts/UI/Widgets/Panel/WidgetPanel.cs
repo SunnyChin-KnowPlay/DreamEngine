@@ -162,9 +162,8 @@ namespace MysticIsle.DreamEngine.UI
                         await UniTask.Yield(PlayerLoopTiming.Update);
                     }
                 }
-
-                this.gameObject.SetActive(false);
             }
+            this.gameObject.SetActive(false);
         }
         #endregion
     }
