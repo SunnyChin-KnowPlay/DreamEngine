@@ -2,22 +2,12 @@
     "name": "com.mysticisle.dreamengine",
     "displayName": "DreamEngine",
     "version": "0.0.1",
-    "unity": "6000.0.30",
+    "unity": "6000.0",
     "description": "DreamEngine.",
-    "author": {
-        "name": "Sunny",
-        "email": "",
-        "url": ""
-    },
     "dependencies": {
         "com.unity.addressables": "2.2.2",
         "com.unity.ugui": "2.0.0",
         "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask"
     },
-    "keywords": [
-        "dreamengine",
-        "unity",
-        "game"
-    ],
-    "type": "library"
+    "keywords": []
 }
