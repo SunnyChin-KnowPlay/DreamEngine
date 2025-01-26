@@ -9,5 +9,10 @@
         "com.unity.ugui": "2.0.0",
         "com.cysharp.unitask": "2.5.10"
     },
+    "author": {
+        "name": "Mystic Isle",
+        "email": "",
+        "url": ""
+    },
     "keywords": []
 }
