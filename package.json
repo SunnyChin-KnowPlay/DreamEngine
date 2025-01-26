@@ -1,15 +1,15 @@
 {
-    "name": "com.mysticisle.dreamengine", // 包的唯一标识符（推荐用域名格式）
-    "displayName": "DreamEngine", // 包的显示名称
-    "version": "0.0.1", // 包的版本号
-    "unity": "6000.0.30", // 最低支持的 Unity 版本
-    "description": "DreamEngine.", // 包的描述
+    "name": "com.mysticisle.dreamengine",
+    "displayName": "DreamEngine",
+    "version": "0.0.1",
+    "unity": "6000.0.30",
+    "description": "DreamEngine.",
     "author": {
         "name": "Sunny",
         "email": "",
         "url": ""
     },
-    "dependencies": { // 依赖的其他包（如果有）
+    "dependencies": {
         "com.unity.addressables": "2.2.2",
         "com.unity.ugui": "2.0.0",
         "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask"
@@ -19,5 +19,5 @@
         "unity",
         "game"
     ],
-    "type": "library" // 包的类型（library, sample, template）
+    "type": "library"
 }
