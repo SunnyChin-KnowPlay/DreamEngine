@@ -6,6 +6,9 @@ using UnityEngine;
 
 namespace MysticIsle.DreamEngine.Utilities
 {
+    /// <summary>
+    /// 工具类
+    /// </summary>
     public static partial class Utility
     {
         /// <summary>
