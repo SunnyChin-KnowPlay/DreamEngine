@@ -9,14 +9,23 @@
         "com.unity.ugui": "1.0.0",
         "com.cysharp.unitask": "2.5.10"
     },
-    "author": {
-        "name": "Mystic Isle",
-        "email": "support@mysticisle.com",
-        "url": "https://mysticisle.com"
-    },
+    "author": "Mystic Isle <support@mysticisle.com> (https://mysticisle.com)",
     "keywords": [
         "framework",
         "engine",
         "tools"
-    ]
+    ],
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/SunnyChin-KnowPlay/DreamEngine.git"
+    },
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/SunnyChin-KnowPlay/DreamEngine/issues"
+    },
+    "homepage": "https://github.com/SunnyChin-KnowPlay/DreamEngine#readme"
 }
