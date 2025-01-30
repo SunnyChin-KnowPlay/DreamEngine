@@ -81,6 +81,10 @@ namespace MysticIsle.DreamEngine.UI
 
         [TitleGroup("Button", "Widget")]
         public ButtonClickedEvent onClick;
+
+        private float targetAmount;
+        private float grayAmount;
+        private const float transitionSpeed = 2f; // Adjust the speed of transition
         #endregion
 
         #region Mono
@@ -109,6 +113,12 @@ namespace MysticIsle.DreamEngine.UI
         {
             base.OnValidate();
             this.Refresh();
+        }
+
+        private void Update()
+        {
+            grayAmount = Mathf.Lerp(grayAmount, targetAmount, Time.deltaTime * transitionSpeed);
+            image.material.SetFloat("_GrayAmount", grayAmount);
         }
         #endregion
 
@@ -140,15 +150,12 @@ namespace MysticIsle.DreamEngine.UI
 
         private void UpdateButtonShader()
         {
-            if (button.interactable)
+            targetAmount = button.interactable ? 0f : 1f;
+
+            if (!Application.isPlaying)
             {
-                // Set shader properties for enabled state
-                image.material.SetFloat("_GrayScaleAmount", 0f);
-            }
-            else
-            {
-                // Set shader properties for disabled state
-                image.material.SetFloat("_GrayScaleAmount", 1f);
+                grayAmount = targetAmount;
+                image.material.SetFloat("_GrayAmount", grayAmount);
             }
         }
 
