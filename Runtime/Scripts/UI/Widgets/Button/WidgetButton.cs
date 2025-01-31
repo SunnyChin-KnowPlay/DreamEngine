@@ -42,7 +42,6 @@ namespace MysticIsle.DreamEngine.UI
         }
     }
 
-
     [RequireComponent(typeof(Button))]
     public class WidgetButton : Widget
     {
@@ -66,16 +65,22 @@ namespace MysticIsle.DreamEngine.UI
                 }
             }
         }
+
         [TitleGroup("Button", "Widget")]
         public string titleText;
 
+        [TitleGroup("Button", "Widget"), ShowInInspector]
+        public bool enableGrayAmount = false;
 
         [TitleGroup("Button", "Widget"), ReadOnly, ShowInInspector]
         public Button Button => button;
         private Button button;
+
         [TitleGroup("Button", "Widget"), ShowInInspector]
         private Image image;
+
         public TMP_Text Text => text;
+
         [TitleGroup("Button", "Widget"), ShowInInspector, OdinSerialize]
         private TMP_Text text;
 
@@ -85,6 +90,7 @@ namespace MysticIsle.DreamEngine.UI
         private float targetAmount;
         private float grayAmount;
         private const float transitionSpeed = 2f; // Adjust the speed of transition
+        private bool previousInteractableState;
         #endregion
 
         #region Mono
@@ -106,23 +112,79 @@ namespace MysticIsle.DreamEngine.UI
         protected override void OnEnable()
         {
             base.OnEnable();
+            previousInteractableState = button.interactable;
+            if (enableGrayAmount)
+            {
+                var colors = button.colors;
+                colors.disabledColor = colors.normalColor;
+                button.colors = colors;
+            }
             this.Refresh();
         }
 
         protected override void OnValidate()
         {
             base.OnValidate();
+            CheckAndUpdateInteractableState();
             this.Refresh();
         }
 
         private void Update()
         {
-            grayAmount = Mathf.Lerp(grayAmount, targetAmount, Time.deltaTime * transitionSpeed);
-            image.material.SetFloat("_GrayAmount", grayAmount);
+            CheckAndUpdateInteractableState();
+            if (enableGrayAmount)
+            {
+                grayAmount = Mathf.Lerp(grayAmount, targetAmount, Time.deltaTime * transitionSpeed);
+                UpdateGrayAmount(grayAmount);
+            }
         }
         #endregion
 
         #region Logic
+        private void CheckAndUpdateInteractableState()
+        {
+            if (button.interactable != previousInteractableState)
+            {
+                // The interactable state has changed
+                UpdateButtonShader();
+                previousInteractableState = button.interactable;
+            }
+        }
+
+        private void UpdateGrayAmount(float amount)
+        {
+            if (enableGrayAmount)
+            {
+                ApplyGrayScaleToImage(image, amount);
+
+                foreach (var childImage in GetComponentsInChildren<Image>())
+                {
+                    ApplyGrayScaleToImage(childImage, amount);
+                }
+            }
+        }
+
+        private void ApplyGrayScaleToImage(Image img, float amount)
+        {
+            if (img != null && img.material != null)
+            {
+                img.material.SetFloat("_GrayAmount", amount);
+            }
+        }
+
+        private void UpdateButtonShader()
+        {
+            if (enableGrayAmount)
+            {
+                targetAmount = button.interactable ? 0f : 1f;
+                if (!Application.isPlaying)
+                {
+                    grayAmount = targetAmount;
+                    UpdateGrayAmount(grayAmount);
+                }
+            }
+        }
+
         public void Refresh()
         {
             if (null != text)
@@ -148,17 +210,6 @@ namespace MysticIsle.DreamEngine.UI
             InvokeOnClick(this);
         }
 
-        private void UpdateButtonShader()
-        {
-            targetAmount = button.interactable ? 0f : 1f;
-
-            if (!Application.isPlaying)
-            {
-                grayAmount = targetAmount;
-                image.material.SetFloat("_GrayAmount", grayAmount);
-            }
-        }
-
         [TitleGroup("Button", "Widget")]
         [Button("Click"), GUIColor(0, 0.7f, 0.7f)]
         public void Click()
@@ -173,7 +224,7 @@ namespace MysticIsle.DreamEngine.UI
         #region UI Event
         public override void OnPointerClick(PointerEventData eventData)
         {
-
+            // Handle pointer click event
         }
         #endregion
     }
