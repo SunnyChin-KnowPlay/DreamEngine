@@ -143,7 +143,7 @@ namespace MysticIsle.DreamEngine.UI
         #region Logic
         private void CheckAndUpdateInteractableState()
         {
-            if (button.interactable != previousInteractableState)
+            if (null != button && button.interactable != previousInteractableState)
             {
                 // The interactable state has changed
                 UpdateButtonShader();
