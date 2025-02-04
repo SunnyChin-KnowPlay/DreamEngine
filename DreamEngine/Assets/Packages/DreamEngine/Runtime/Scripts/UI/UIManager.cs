@@ -11,7 +11,6 @@ namespace MysticIsle.DreamEngine.UI
     /// </summary>
     public abstract class UIManager : Control, IManager
     {
-        public abstract string Path { get; } //= "Assets/Res/UI/Root/UIRoot.prefab";
         public abstract string EventSystemPath { get; } //= "Assets/Res/UI/Root/EventSystem.prefab";
 
         #region Fields
