@@ -7,7 +7,7 @@ namespace MysticIsle.DreamEngine
     /// <summary>
     /// 基础管理器抽象类
     /// </summary>
-    public abstract class BaseManager<TBaseManager> : MonoBehaviour, IBaseManager
+    public abstract class BaseManager<TBaseManager> : MonoBehaviour
     where TBaseManager : BaseManager<TBaseManager>
     {
         #region Instance
