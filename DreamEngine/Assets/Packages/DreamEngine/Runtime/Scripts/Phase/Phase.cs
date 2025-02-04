@@ -46,14 +46,6 @@ namespace MysticIsle.DreamEngine
             return UniTask.CompletedTask;
         }
 
-        /// <summary>
-        /// Method called when the phase is cancelled
-        /// </summary>
-        protected virtual UniTask OnCancel()
-        {
-            return UniTask.CompletedTask;
-        }
-
         #endregion
 
         #region Public Methods
@@ -73,36 +65,19 @@ namespace MysticIsle.DreamEngine
 
             try
             {
-                if (!_cancellationTokenSource.Token.IsCancellationRequested)
-                {
-                    // Enter the phase
-                    await OnEnter();
-                }
+                // Enter the phase
+                await OnEnter();
 
                 if (!_cancellationTokenSource.Token.IsCancellationRequested)
                 {
                     // Update the phase
                     await OnUpdate();
                 }
-
-                if (!_cancellationTokenSource.Token.IsCancellationRequested)
-                {
-                    // Exit the phase
-                    await OnExit();
-                }
             }
             catch (OperationCanceledException)
             {
                 // Logic to handle task cancellation (can choose to ignore or log)
                 UnityEngine.Debug.Log("Phase was interrupted and canceled.");
-                try
-                {
-                    await OnCancel(); // Execute the OnCancel callback
-                }
-                catch (Exception ex)
-                {
-                    UnityEngine.Debug.LogError($"Exception in OnCancel: {ex}");
-                }
             }
             catch (Exception ex)
             {
@@ -112,6 +87,9 @@ namespace MysticIsle.DreamEngine
             }
             finally
             {
+                // Ensure OnExit is always called
+                await OnExit();
+
                 // Ensure _cancellationTokenSource is always disposed at the end of the phase
                 _cancellationTokenSource?.Dispose();
                 _cancellationTokenSource = null;
