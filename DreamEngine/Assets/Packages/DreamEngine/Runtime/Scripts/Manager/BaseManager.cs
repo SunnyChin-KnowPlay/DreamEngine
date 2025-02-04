@@ -95,10 +95,10 @@ namespace MysticIsle.DreamEngine
         /// </summary>
         public UIManager UIManager { get; protected set; }
 
-        // /// <summary>
-        // /// 阶段管理器
-        // /// </summary>
-        // public PhaseManager PhaseManager { get; protected set; }
+        /// <summary>
+        /// 阶段管理器
+        /// </summary>
+        public PhaseManager PhaseManager { get; protected set; }
 
         #endregion
 
