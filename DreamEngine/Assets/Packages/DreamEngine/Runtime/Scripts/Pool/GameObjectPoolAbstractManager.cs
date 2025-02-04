@@ -1,8 +1,7 @@
-﻿using MysticIsle.DreamEngine.Core;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace MysticIsle.DreamEngine.Core
+namespace MysticIsle.DreamEngine
 {
     /// <summary>
     /// 游戏对象池管理器

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace MysticIsle.DreamEngine.Core
+namespace MysticIsle.DreamEngine
 {
     /// <summary>
     /// 对象池

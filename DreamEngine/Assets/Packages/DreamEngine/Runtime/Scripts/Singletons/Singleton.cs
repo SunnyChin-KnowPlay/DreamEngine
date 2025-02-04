@@ -3,7 +3,7 @@
 #if UNITY_EDITOR
 #endif
 
-namespace MysticIsle.DreamEngine.Core
+namespace MysticIsle.DreamEngine
 {
     public class Singleton<T> : MonoBehaviour where T : Singleton<T>, new()
     {

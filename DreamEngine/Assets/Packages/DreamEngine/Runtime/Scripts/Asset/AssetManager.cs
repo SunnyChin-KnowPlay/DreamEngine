@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
-namespace MysticIsle.DreamEngine.Core
+namespace MysticIsle.DreamEngine
 {
     /// <summary>
     /// AssetManager is a static class that provides methods to load and manage assets using Unity Addressables.

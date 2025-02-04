@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace MysticIsle.DreamEngine.Core
+namespace MysticIsle.DreamEngine
 {
     [System.Serializable]
     internal struct DelayedRecycleItem
