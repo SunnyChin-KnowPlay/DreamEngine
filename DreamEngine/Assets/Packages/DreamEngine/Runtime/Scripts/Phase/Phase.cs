@@ -46,6 +46,14 @@ namespace MysticIsle.DreamEngine
             return UniTask.CompletedTask;
         }
 
+        /// <summary>
+        /// Method called when the phase is cancelled
+        /// </summary>
+        protected virtual UniTask OnCancel()
+        {
+            return UniTask.CompletedTask;
+        }
+
         #endregion
 
         #region Public Methods
@@ -65,24 +73,42 @@ namespace MysticIsle.DreamEngine
 
             try
             {
-                // Enter the phase
-                await OnEnter();
+                if (!_cancellationTokenSource.Token.IsCancellationRequested)
+                {
+                    // Enter the phase
+                    await OnEnter();
+                }
 
-                // Update the phase
-                await OnUpdate();
+                if (!_cancellationTokenSource.Token.IsCancellationRequested)
+                {
+                    // Update the phase
+                    await OnUpdate();
+                }
 
-                // Exit the phase
-                await OnExit();
+                if (!_cancellationTokenSource.Token.IsCancellationRequested)
+                {
+                    // Exit the phase
+                    await OnExit();
+                }
             }
             catch (OperationCanceledException)
             {
                 // Logic to handle task cancellation (can choose to ignore or log)
                 UnityEngine.Debug.Log("Phase was interrupted and canceled.");
+                try
+                {
+                    await OnCancel(); // Execute the OnCancel callback
+                }
+                catch (Exception ex)
+                {
+                    UnityEngine.Debug.LogError($"Exception in OnCancel: {ex}");
+                }
             }
             catch (Exception ex)
             {
                 // Handle other exceptions (e.g., possible errors)
-                UnityEngine.Debug.LogException(ex);  // Use LogException to output exception and stack trace
+                UnityEngine.Debug.LogError($"Exception in phase: {ex}");
+                throw;
             }
             finally
             {
