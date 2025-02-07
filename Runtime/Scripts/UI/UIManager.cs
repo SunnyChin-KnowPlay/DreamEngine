@@ -93,7 +93,7 @@ namespace MysticIsle.DreamEngine.UI
         /// <summary>
         /// 更新方法
         /// </summary>
-        public virtual void OnUpdate()
+        public virtual void Update()
         {
             if (panelStack.Count > 0)
             {

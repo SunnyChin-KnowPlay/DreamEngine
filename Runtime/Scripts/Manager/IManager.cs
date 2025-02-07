@@ -1,6 +1,6 @@
 namespace MysticIsle.DreamEngine
 {
-    public interface IManager : IUpdate
+    public interface IManager
     {
 
     }

@@ -79,8 +79,6 @@ namespace MysticIsle.DreamEngine
 
         private float runningTime;
         private readonly List<IManager> managers = new();
-        private readonly Queue<IManager> managersToUpdate = new();
-
         #endregion
 
         #region Properties
@@ -182,17 +180,6 @@ namespace MysticIsle.DreamEngine
         {
             float delta = Time.deltaTime;
             runningTime += delta;
-
-            managersToUpdate.Clear();
-            foreach (var manager in managers)
-            {
-                managersToUpdate.Enqueue(manager);
-            }
-
-            while (managersToUpdate.TryDequeue(out var manager))
-            {
-                manager.OnUpdate();
-            }
         }
 
         /// <summary>
