@@ -9,15 +9,15 @@ namespace MysticIsle.DreamEngine.UI
 {
     [ExecuteInEditMode]
     public partial class Widget : SerializedMonoBehaviour,
-    IPointerEnterHandler,
-    IPointerExitHandler,
-    IPointerClickHandler,
-    IBeginDragHandler,
-    IDragHandler,
-    IEndDragHandler,
-    IDropHandler,
-    IPointerDownHandler,
-    IPointerUpHandler
+        IPointerEnterHandler,
+        IPointerExitHandler,
+        IPointerClickHandler,
+        IBeginDragHandler,
+        IDragHandler,
+        IEndDragHandler,
+        IDropHandler,
+        IPointerDownHandler,
+        IPointerUpHandler
     {
         #region Event
         [FoldoutGroup("Events"), ReadOnly, ShowInInspector]
@@ -116,7 +116,6 @@ namespace MysticIsle.DreamEngine.UI
         private Canvas canvas;
         public CanvasGroup CanvasGroup => canvasGroup; // CanvasGroup for managing UI interactions
         private CanvasGroup canvasGroup;
-
         #endregion
 
         #region References
@@ -546,6 +545,49 @@ namespace MysticIsle.DreamEngine.UI
                 // Trigger the OnDropped event
                 OnDropped?.Invoke(this, target);
             }
+        }
+        #endregion
+
+        #region Conversion
+        /// <summary>
+        /// Converts a screen position to a world position using the Canvas's RectTransform.
+        /// </summary>
+        /// <param name="screenPosition">The screen position.</param>
+        /// <returns>The converted world position, or Vector3.zero if conversion fails.</returns>
+        protected Vector3 ConvertScreenPointToWorldPoint(Vector3 screenPosition)
+        {
+            // 获取 Canvas 的 RectTransform
+            RectTransform canvasRect = this.Canvas.GetComponent<RectTransform>();
+
+            // 如果 Canvas 处于 ScreenSpaceOverlay 模式，则 worldCamera 传 null
+            Camera cam = (this.Canvas.renderMode == RenderMode.ScreenSpaceOverlay) ? null : this.Canvas.worldCamera;
+
+            if (RectTransformUtility.ScreenPointToWorldPointInRectangle(canvasRect, screenPosition, cam, out Vector3 worldPosition))
+            {
+                return worldPosition;
+            }
+
+            return Vector3.zero;
+        }
+
+        /// <summary>
+        /// Converts a screen position to a local position relative to the Canvas.
+        /// </summary>
+        /// <param name="screenPosition">The screen position.</param>
+        /// <returns>The converted local position, or Vector2.zero if conversion fails.</returns>
+        protected Vector2 ConvertScreenPointToLocalPosition(Vector3 screenPosition)
+        {
+            // 获取 Canvas 的 RectTransform
+            RectTransform canvasRect = this.Canvas.GetComponent<RectTransform>();
+
+            // 如果 Canvas 处于 ScreenSpaceOverlay 模式，则 worldCamera 传 null
+            Camera cam = (this.Canvas.renderMode == RenderMode.ScreenSpaceOverlay) ? null : this.Canvas.worldCamera;
+
+            if (RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect, screenPosition, cam, out Vector2 localPosition))
+            {
+                return localPosition;
+            }
+            return Vector2.zero;
         }
         #endregion
     }
