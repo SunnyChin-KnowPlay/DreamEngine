@@ -2,7 +2,7 @@ using Cysharp.Threading.Tasks;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace MysticIsle.DreamEngine
+namespace MysticIsle.DreamEngine.Phases
 {
     /// <summary>
     /// Manages the phases of the game, allowing for phase transitions and interruptions.

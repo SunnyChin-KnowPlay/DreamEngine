@@ -1,4 +1,4 @@
-namespace MysticIsle.DreamEngine
+namespace MysticIsle.DreamEngine.Core
 {
     public interface IUpdate
     {

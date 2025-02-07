@@ -2,7 +2,7 @@ using Cysharp.Threading.Tasks;
 using System;
 using System.Threading;
 
-namespace MysticIsle.DreamEngine
+namespace MysticIsle.DreamEngine.Phases
 {
     public class Phase : IPhase
     {
