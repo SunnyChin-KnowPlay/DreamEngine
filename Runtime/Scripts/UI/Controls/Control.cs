@@ -31,7 +31,7 @@ namespace MysticIsle.DreamEngine.UI
         #region Mono
         protected virtual void Awake()
         {
-            firstWidget = GetComponent<Widget>();
+            _ = FirstWidget;
         }
 
         protected virtual void OnEnable()
@@ -51,7 +51,17 @@ namespace MysticIsle.DreamEngine.UI
         #endregion
 
         #region Getter
-        public Widget FirstWidget => firstWidget;
+        public Widget FirstWidget
+        {
+            get
+            {
+                if (null == firstWidget)
+                {
+                    firstWidget = GetComponent<Widget>();
+                }
+                return firstWidget;
+            }
+        }
 
         public UIManager UIManager => FirstWidget.UIManager;
 
