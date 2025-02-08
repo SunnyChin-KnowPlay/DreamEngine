@@ -23,17 +23,6 @@ namespace MysticIsle.DreamEngine.UI
         private Widget firstWidget;
 
         /// <summary>
-        /// UI管理器
-        /// </summary>
-        public UIManager UIManager
-        {
-            get
-            {
-                return GetComponentInParent<UIManager>();
-            }
-        }
-
-        /// <summary>
         /// 是否为激活状态
         /// </summary>
         public bool IsActive => null != this.gameObject && this.gameObject.activeSelf;
@@ -62,17 +51,6 @@ namespace MysticIsle.DreamEngine.UI
         #endregion
 
         #region Getter
-        /// <summary>
-        /// 画布
-        /// </summary>
-        public virtual Canvas Canvas
-        {
-            get
-            {
-                return GetComponentInParent<Canvas>();
-            }
-        }
-
         public Widget FirstWidget
         {
             get => firstWidget;

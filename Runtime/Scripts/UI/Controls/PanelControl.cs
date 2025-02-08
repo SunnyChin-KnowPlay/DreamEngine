@@ -57,12 +57,6 @@ namespace MysticIsle.DreamEngine.UI
         {
             base.Awake();
 
-            // Enable vertex color always in gamma for the Canvas component
-            if (TryGetComponent<Canvas>(out var canvas))
-            {
-                canvas.vertexColorAlwaysGammaSpace = true;
-            }
-
             if (null != this.Panel.TitleText)
             {
                 titleText = this.Panel.TitleText.GetComponent<TMP_Text>();
@@ -128,9 +122,10 @@ namespace MysticIsle.DreamEngine.UI
         /// </summary>
         protected virtual void OnClickHome()
         {
-            if (null != this.UIManager)
+            UIManager uiManager = this.FirstWidget.UIManager;
+            if (null != uiManager)
             {
-                this.UIManager.PopUntilTop();
+                uiManager.PopUntilTop();
             }
         }
 

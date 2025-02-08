@@ -116,6 +116,17 @@ namespace MysticIsle.DreamEngine.UI
         private Canvas canvas;
         public CanvasGroup CanvasGroup => canvasGroup; // CanvasGroup for managing UI interactions
         private CanvasGroup canvasGroup;
+
+        /// <summary>
+        /// UI管理器
+        /// </summary>
+        public virtual UIManager UIManager
+        {
+            get
+            {
+                return GetComponentInParent<UIManager>();
+            }
+        }
         #endregion
 
         #region References

@@ -2,6 +2,7 @@ using Sirenix.OdinInspector;
 using Sirenix.Serialization;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
+using MysticIsle.DreamEngine.Core;
 
 namespace MysticIsle.DreamEngine.UI
 {
@@ -25,6 +26,8 @@ namespace MysticIsle.DreamEngine.UI
         Blur = 1 << 1,
     }
 
+    [ExecuteAlways]
+    [RequireComponent(typeof(Canvas))]
     public class WidgetPanel : Widget
     {
         #region Params
@@ -36,7 +39,6 @@ namespace MysticIsle.DreamEngine.UI
         public WidgetButton ExitButton => this.GetWidget<WidgetButton>("Root/ExitButton");
         [TitleGroup("Panel", "Widget"), ShowInInspector, ReadOnly, PropertyOrder(3)]
         public Widget TitleText => this.GetWidget("Root/TitleText");
-
 
         [FoldoutGroup("Panel/Animation Settings"), PropertyOrder(0)]
         public AnimationCurve alphaAnimationCurve = new(new Keyframe(0, 0), new Keyframe(1, 1));
@@ -50,22 +52,87 @@ namespace MysticIsle.DreamEngine.UI
 
         [FoldoutGroup("Panel/Animation Settings"), EnumToggleButtons, PropertyOrder(0)]
         public EPanelSwitchAnimationFunction animationFunction;
+
+        // Odin 面板按钮添加预设摄像机（直接使用 Canvas.worldCamera，无需额外变量）
+        [TitleGroup("Panel", "Widget Camera Settings", Order = 2)]
+        [Button("Add Preset Camera", ButtonSizes.Medium)]
+        private void AddPresetCamera()
+        {
+            if (Canvas.worldCamera != null)
+            {
+                Debug.LogWarning("预设摄像机已存在，使用 Canvas.worldCamera: " + Canvas.worldCamera.name);
+                return;
+            }
+
+            // 尝试在子物体中查找现有摄像机
+            Camera cam = GetComponentInChildren<Camera>();
+            if (cam == null)
+            {
+                // 自动创建预设摄像机
+                GameObject camObj = new("PanelCamera");
+                camObj.transform.SetParent(transform, false);
+                // 将摄像机的 Transform 排到最上面
+                camObj.transform.SetSiblingIndex(0);
+
+                cam = camObj.AddComponent<Camera>();
+
+                // 设置摄像机默认参数
+                cam.clearFlags = CameraClearFlags.Depth;
+                cam.cullingMask = LayerMask.GetMask("UI");
+
+                // 设置为正交模式，并将 near clip plane 设为 0
+                cam.orthographic = true;
+                cam.nearClipPlane = 0f;
+
+                Debug.Log("自动添加预设摄像机: " + cam.name);
+            }
+            else
+            {
+                Debug.Log("在子物体中已找到摄像机: " + cam.name);
+            }
+            // 直接将摄像机赋值给 Canvas 的 worldCamera 属性
+            Canvas.worldCamera = cam;
+            Canvas.vertexColorAlwaysGammaSpace = true;
+        }
         #endregion
 
         #region Mono
         protected override void Awake()
         {
             base.Awake();
-
             root = this.GetTransform(nameof(Root)) as RectTransform;
         }
 
         protected override void OnEnable()
         {
             base.OnEnable();
-
+            if (null != this.Canvas.worldCamera)
+                CameraManager.Instance.AddCamera(this.Canvas.worldCamera, this.Canvas.sortingLayerID);
             ApplyEnter().Forget();
         }
+
+        protected override void OnDisable()
+        {
+            base.OnDisable();
+            if (null != this.Canvas.worldCamera)
+                CameraManager.Instance.RemoveCamera(this.Canvas.worldCamera);
+        }
+
+#if UNITY_EDITOR
+        protected override void OnValidate()
+        {
+            base.OnValidate();
+            // 当在编辑模式下挂上脚本且当前 Canvas 没有设置 worldCamera 时自动添加
+            if (!Application.isPlaying)
+            {
+                Canvas canvas = GetComponent<Canvas>();
+                if (canvas != null && canvas.worldCamera == null)
+                {
+                    AddPresetCamera();
+                }
+            }
+        }
+#endif
         #endregion
 
         #region Switch
@@ -76,6 +143,19 @@ namespace MysticIsle.DreamEngine.UI
         #endregion
 
         #region Logic
+        internal void SetSortingLayer(int sortingLayerID)
+        {
+            if (this.Canvas.sortingLayerID != sortingLayerID)
+            {
+                this.Canvas.sortingLayerID = sortingLayerID;
+                if (null != this.Canvas.worldCamera)
+                {
+                    CameraManager.Instance.RemoveCamera(this.Canvas.worldCamera);
+                    CameraManager.Instance.AddCamera(this.Canvas.worldCamera, sortingLayerID);
+                }
+            }
+        }
+
         /// <summary>
         /// 检查是否包含动画功能
         /// </summary>

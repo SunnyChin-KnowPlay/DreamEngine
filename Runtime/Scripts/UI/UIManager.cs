@@ -2,22 +2,15 @@ using Sirenix.OdinInspector;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 namespace MysticIsle.DreamEngine.UI
 {
     /// <summary>
     /// UI管理器
     /// </summary>
-    public abstract class UIManager : Control, IManager
+    public abstract class UIManager : MonoBehaviour, IManager
     {
-        public abstract string EventSystemPath { get; } //= "Assets/Res/UI/Root/EventSystem.prefab";
-
         #region Fields
-
-        protected Canvas canvas;
-        protected Camera uiCamera;
-        private bool isGlobal;
 
         /// <summary>
         /// panel栈
@@ -36,29 +29,6 @@ namespace MysticIsle.DreamEngine.UI
 
         #region Properties
 
-        public EventSystem EventSystem { get; private set; }
-
-        /// <summary>
-        /// 是否为全局
-        /// </summary>
-        public bool IsGlobal
-        {
-            get => isGlobal;
-            set
-            {
-                if (isGlobal != value)
-                {
-                    isGlobal = value;
-                    this.OnGlobalChanged(value);
-                }
-            }
-        }
-
-        protected virtual void OnGlobalChanged(bool value)
-        {
-            // this.canvas.sortingLayerID = isGlobal ? LayerUtility.GetSortingLayerId(ESortingLayer.Global) : LayerUtility.GetSortingLayerId(ESortingLayer.Default);
-        }
-
         #endregion
 
         #region MonoBehaviour Methods
@@ -66,34 +36,23 @@ namespace MysticIsle.DreamEngine.UI
         /// <summary>
         /// Unity的Awake方法
         /// </summary>
-        protected override void Awake()
+        protected virtual void Awake()
         {
-            base.Awake();
 
-            this.canvas = this.GetComponent<Canvas>();
-            this.uiCamera = canvas.worldCamera;
         }
 
         /// <summary>
         /// Unity的OnDestroy方法
         /// </summary>
-        protected override void OnDestroy()
+        protected virtual void OnDestroy()
         {
-            base.OnDestroy();
-        }
-
-        /// <summary>
-        /// Unity的OnEnable方法
-        /// </summary>
-        protected override void OnEnable()
-        {
-            base.OnEnable();
+            this.UnloadAllPanels();
         }
 
         /// <summary>
         /// 更新方法
         /// </summary>
-        public virtual void Update()
+        protected virtual void Update()
         {
             if (panelStack.Count > 0)
             {
@@ -113,21 +72,6 @@ namespace MysticIsle.DreamEngine.UI
 
         #endregion
 
-        public void CreateEventSystem()
-        {
-            if (null != this.EventSystem)
-            {
-                return;
-            }
-            GameObject obj = AssetManager.LoadAsset<GameObject>(EventSystemPath);
-            GameObject go = GameObject.Instantiate(obj, this.transform);
-            if (null != go)
-            {
-                this.EventSystem = go.GetComponent<EventSystem>();
-                go.name = obj.name;
-            }
-        }
-
         #region Panel Management
 
         /// <summary>
@@ -136,12 +80,7 @@ namespace MysticIsle.DreamEngine.UI
         /// <param name="go">面板对象</param>
         private void SetupPanel(WidgetPanel go)
         {
-            go.transform.SetParent(FirstWidget.RectTransform, false);
-
-            if (go.TryGetComponent<Canvas>(out Canvas canvas))
-            {
-                canvas.worldCamera = this.uiCamera;
-            }
+            go.transform.SetParent(this.transform, false);
         }
 
         /// <summary>
@@ -479,7 +418,10 @@ namespace MysticIsle.DreamEngine.UI
         public void HidePanel(string path)
         {
             WidgetPanel panel = this.GetPanel(path);
-            panel?.Hide();
+            if (null != panel)
+            {
+                panel.Hide();
+            }
         }
 
         /// <summary>
