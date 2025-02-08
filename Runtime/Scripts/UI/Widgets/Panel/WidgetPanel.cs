@@ -26,7 +26,6 @@ namespace MysticIsle.DreamEngine.UI
         Blur = 1 << 1,
     }
 
-    [ExecuteAlways]
     [RequireComponent(typeof(Canvas))]
     public class WidgetPanel : Widget
     {
