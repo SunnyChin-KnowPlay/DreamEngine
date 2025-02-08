@@ -107,16 +107,18 @@ namespace MysticIsle.DreamEngine.UI
         protected override void OnEnable()
         {
             base.OnEnable();
-            if (null != this.Canvas.worldCamera)
-                CameraManager.Instance.AddCamera(this.Canvas.worldCamera, this.Canvas.sortingLayerID);
+            Canvas canvas = this.Canvas;
+            if (null != canvas && null != canvas.worldCamera)
+                CameraManager.Instance.AddCamera(canvas.worldCamera, canvas.sortingLayerID);
             ApplyEnter().Forget();
         }
 
         protected override void OnDisable()
         {
             base.OnDisable();
-            if (null != this.Canvas.worldCamera)
-                CameraManager.Instance.RemoveCamera(this.Canvas.worldCamera);
+            Canvas canvas = this.Canvas;
+            if (null != canvas && null != this.Canvas.worldCamera)
+                CameraManager.Instance.RemoveCamera(canvas.worldCamera);
         }
         #endregion
 
