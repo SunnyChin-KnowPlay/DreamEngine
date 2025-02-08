@@ -51,10 +51,9 @@ namespace MysticIsle.DreamEngine.UI
         #endregion
 
         #region Getter
-        public Widget FirstWidget
-        {
-            get => firstWidget;
-        }
+        public Widget FirstWidget => firstWidget;
+
+        public UIManager UIManager => FirstWidget.UIManager;
 
         /// <summary>
         /// 获取部件
