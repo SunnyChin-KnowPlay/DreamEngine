@@ -112,8 +112,13 @@ namespace MysticIsle.DreamEngine.UI
 
         public bool Draggable { get; set; } = false; // Indicates if the widget is draggable
 
-        public Canvas Canvas => canvas; // Canvas the widget is part of
-        private Canvas canvas;
+        public Canvas Canvas
+        {
+            get
+            {
+                return GetComponentInParent<Canvas>();
+            }
+        }
         public CanvasGroup CanvasGroup => canvasGroup; // CanvasGroup for managing UI interactions
         private CanvasGroup canvasGroup;
 
@@ -151,7 +156,6 @@ namespace MysticIsle.DreamEngine.UI
         {
             rectTransform = GetComponent<RectTransform>();
 
-            canvas = GetComponentInParent<Canvas>();
             if (!TryGetComponent<CanvasGroup>(out canvasGroup))
             {
                 canvasGroup = gameObject.AddComponent<CanvasGroup>();
@@ -524,10 +528,10 @@ namespace MysticIsle.DreamEngine.UI
         {
             if (!Draggable) return;
 
-            if (canvas != null)
+            if (Canvas != null)
             {
                 RectTransform rectTransform = GetComponent<RectTransform>();
-                rectTransform.anchoredPosition += eventData.delta / canvas.scaleFactor;
+                rectTransform.anchoredPosition += eventData.delta / Canvas.scaleFactor;
             }
         }
 
