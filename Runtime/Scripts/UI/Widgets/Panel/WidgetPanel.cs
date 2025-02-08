@@ -58,9 +58,11 @@ namespace MysticIsle.DreamEngine.UI
         [Button("Add Preset Camera", ButtonSizes.Medium)]
         private void AddPresetCamera()
         {
-            if (Canvas.worldCamera != null)
+            Canvas canvas = GetComponent<Canvas>();
+
+            if (canvas.worldCamera != null)
             {
-                Debug.LogWarning("预设摄像机已存在，使用 Canvas.worldCamera: " + Canvas.worldCamera.name);
+                Debug.LogWarning("预设摄像机已存在，使用 Canvas.worldCamera: " + canvas.worldCamera.name);
                 return;
             }
 
@@ -91,8 +93,8 @@ namespace MysticIsle.DreamEngine.UI
                 Debug.Log("在子物体中已找到摄像机: " + cam.name);
             }
             // 直接将摄像机赋值给 Canvas 的 worldCamera 属性
-            Canvas.worldCamera = cam;
-            Canvas.vertexColorAlwaysGammaSpace = true;
+            canvas.worldCamera = cam;
+            canvas.vertexColorAlwaysGammaSpace = true;
         }
         #endregion
 
