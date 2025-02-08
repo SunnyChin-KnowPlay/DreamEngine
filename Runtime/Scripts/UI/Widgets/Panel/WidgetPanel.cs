@@ -119,22 +119,6 @@ namespace MysticIsle.DreamEngine.UI
             if (null != this.Canvas.worldCamera)
                 CameraManager.Instance.RemoveCamera(this.Canvas.worldCamera);
         }
-
-#if UNITY_EDITOR
-        protected override void OnValidate()
-        {
-            base.OnValidate();
-            // 当在编辑模式下挂上脚本且当前 Canvas 没有设置 worldCamera 时自动添加
-            if (!Application.isPlaying)
-            {
-                Canvas canvas = GetComponent<Canvas>();
-                if (canvas != null && canvas.worldCamera == null)
-                {
-                    AddPresetCamera();
-                }
-            }
-        }
-#endif
         #endregion
 
         #region Switch
