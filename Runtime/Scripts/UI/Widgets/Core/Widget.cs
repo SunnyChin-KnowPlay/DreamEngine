@@ -7,7 +7,7 @@ using Cysharp.Threading.Tasks;
 
 namespace MysticIsle.DreamEngine.UI
 {
-    [ExecuteInEditMode]
+
     public partial class Widget : SerializedMonoBehaviour,
         IPointerEnterHandler,
         IPointerExitHandler,

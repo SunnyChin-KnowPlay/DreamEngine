@@ -4,30 +4,22 @@ using UnityEngine;
 using Cysharp.Threading.Tasks;
 using MysticIsle.DreamEngine.Core;
 
+
 namespace MysticIsle.DreamEngine.UI
 {
     /// <summary>
     /// 面板开关动画类型
     /// </summary>
-    [System.Flags] // 添加 Flags 特性
+    [System.Flags]
     public enum EPanelSwitchAnimationFunction
     {
-        /// <summary>
-        /// 空
-        /// </summary>
         None = 0,
-        /// <summary>
-        /// 透明度
-        /// </summary>
         Alpha = 1 << 0,
-        /// <summary>
-        /// 模糊
-        /// </summary>
         Blur = 1 << 1,
     }
 
     [RequireComponent(typeof(Canvas))]
-    public class WidgetPanel : Widget
+    public partial class WidgetPanel : Widget
     {
         #region Params
         public RectTransform Root => root;
@@ -51,51 +43,9 @@ namespace MysticIsle.DreamEngine.UI
 
         [FoldoutGroup("Panel/Animation Settings"), EnumToggleButtons, PropertyOrder(0)]
         public EPanelSwitchAnimationFunction animationFunction;
-
-        // Odin 面板按钮添加预设摄像机（直接使用 Canvas.worldCamera，无需额外变量）
-        [TitleGroup("Panel", "Widget Camera Settings", Order = 2)]
-        [Button("Add Preset Camera", ButtonSizes.Medium)]
-        private void AddPresetCamera()
-        {
-            Canvas canvas = GetComponent<Canvas>();
-
-            if (canvas.worldCamera != null)
-            {
-                Debug.LogWarning("预设摄像机已存在，使用 Canvas.worldCamera: " + canvas.worldCamera.name);
-                return;
-            }
-
-            // 尝试在子物体中查找现有摄像机
-            Camera cam = GetComponentInChildren<Camera>();
-            if (cam == null)
-            {
-                // 自动创建预设摄像机
-                GameObject camObj = new("PanelCamera");
-                camObj.transform.SetParent(transform, false);
-                // 将摄像机的 Transform 排到最上面
-                camObj.transform.SetSiblingIndex(0);
-
-                cam = camObj.AddComponent<Camera>();
-
-                // 设置摄像机默认参数
-                cam.clearFlags = CameraClearFlags.Depth;
-                cam.cullingMask = LayerMask.GetMask("UI");
-
-                // 设置为正交模式，并将 near clip plane 设为 0
-                cam.orthographic = true;
-                cam.nearClipPlane = 0f;
-
-                Debug.Log("自动添加预设摄像机: " + cam.name);
-            }
-            else
-            {
-                Debug.Log("在子物体中已找到摄像机: " + cam.name);
-            }
-            // 直接将摄像机赋值给 Canvas 的 worldCamera 属性
-            canvas.worldCamera = cam;
-            canvas.vertexColorAlwaysGammaSpace = true;
-        }
         #endregion
+
+
 
         #region Mono
         protected override void Awake()
@@ -117,7 +67,7 @@ namespace MysticIsle.DreamEngine.UI
         {
             base.OnDisable();
             Canvas canvas = this.Canvas;
-            if (null != canvas && null != this.Canvas.worldCamera)
+            if (null != canvas && null != canvas.worldCamera)
                 CameraManager.Instance.RemoveCamera(canvas.worldCamera);
         }
         #endregion
@@ -143,20 +93,11 @@ namespace MysticIsle.DreamEngine.UI
             }
         }
 
-        /// <summary>
-        /// 检查是否包含动画功能
-        /// </summary>
-        /// <param name="function"></param>
-        /// <returns></returns>
         private bool CheckHasAnimationFunction(EPanelSwitchAnimationFunction function)
         {
             return (animationFunction & function) == function;
         }
 
-        /// <summary>
-        /// 检查是否不存在任何动画功能
-        /// </summary>
-        /// <returns></returns>
         private bool CheckAnimationFunctionsIsEmpty()
         {
             return animationFunction == EPanelSwitchAnimationFunction.None;
@@ -172,13 +113,11 @@ namespace MysticIsle.DreamEngine.UI
                 hasFunctionAlpha &= root.TryGetComponent<CanvasGroup>(out CanvasGroup cg);
 
                 bool hasFunctionBlur = CheckHasAnimationFunction(EPanelSwitchAnimationFunction.Blur);
-                //hasFunctionBlur &= null != this.BlurredBackgroundImage;
 
                 if (hasFunctionAlpha || hasFunctionBlur)
                 {
                     float t = 0;
                     float speed = 1 / showAnimationDuration;
-
                     while (t < 1)
                     {
                         t += Time.unscaledDeltaTime * speed;
@@ -186,10 +125,9 @@ namespace MysticIsle.DreamEngine.UI
                         {
                             cg.alpha = Mathf.Min(alphaAnimationCurve.Evaluate(t), 1);
                         }
-
                         if (hasFunctionBlur)
                         {
-                            //BlurredBackgroundImage.Strength = blurAnimationCurve.Evaluate(t);
+                            // 示例：处理模糊动画
                         }
                         await UniTask.Yield(PlayerLoopTiming.Update);
                     }
@@ -205,27 +143,22 @@ namespace MysticIsle.DreamEngine.UI
                 hasFunctionAlpha &= root.TryGetComponent<CanvasGroup>(out CanvasGroup cg);
 
                 bool hasFunctionBlur = CheckHasAnimationFunction(EPanelSwitchAnimationFunction.Blur);
-                //hasFunctionBlur &= null != this.BlurredBackgroundImage;
 
                 if (hasFunctionAlpha || hasFunctionBlur)
                 {
                     float t = 1;
                     float speed = 1 / hideAnimationDuration;
-
                     while (t > 0)
                     {
                         t -= Time.unscaledDeltaTime * speed;
-
                         if (hasFunctionAlpha)
                         {
                             cg.alpha = Mathf.Min(alphaAnimationCurve.Evaluate(t), 1);
                         }
-
                         if (hasFunctionBlur)
                         {
-                            //BlurredBackgroundImage.Strength = blurAnimationCurve.Evaluate(t);
+                            // 示例：处理模糊动画
                         }
-
                         await UniTask.Yield(PlayerLoopTiming.Update);
                     }
                 }
