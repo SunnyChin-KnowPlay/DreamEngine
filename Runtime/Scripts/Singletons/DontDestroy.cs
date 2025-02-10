@@ -24,22 +24,32 @@ namespace MysticIsle.DreamEngine
         #endregion
 
         #region Gizmos
-        /// <summary>
-        /// 在场景视图中显示一个Gizmo提示，方便在Inspector中识别该对象
-        /// </summary>
-        private void OnDrawGizmos()
-        {
-#if UNITY_EDITOR
-            // 设置Gizmo颜色
-            Gizmos.color = Color.yellow;
-            // 绘制一个包围盒
-            Gizmos.DrawWireCube(transform.position, Vector3.one);
-            // 绘制图标，true表示允许在2D视图中显示
-            Gizmos.DrawIcon(transform.position, "d_UnityEditor.ConsoleWindow", true);
-            // 在对象上方绘制标签
-            Handles.Label(transform.position + Vector3.up * 1.2f, "DontDestroy", EditorStyles.boldLabel);
-#endif
-        }
+        // 如有需要，可以在此处添加Gizmos绘制代码
         #endregion
     }
+
+#if UNITY_EDITOR
+    /// <summary>
+    /// 在Hierarchy窗口中为包含DontDestroy组件的对象显示一个标签提示。
+    /// </summary>
+    [InitializeOnLoad]
+    static class DontDestroyHierarchyLabel
+    {
+        static DontDestroyHierarchyLabel()
+        {
+            EditorApplication.hierarchyWindowItemOnGUI += OnHierarchyItemGUI;
+        }
+
+        private static void OnHierarchyItemGUI(int instanceID, Rect selectionRect)
+        {
+            GameObject obj = EditorUtility.InstanceIDToObject(instanceID) as GameObject;
+            if (obj != null && obj.GetComponent<DontDestroy>() != null)
+            {
+                // 在Hierarchy中右侧显示提示标签
+                Rect labelRect = new(selectionRect.x + selectionRect.width - 100, selectionRect.y, 100, selectionRect.height);
+                EditorGUI.LabelField(labelRect, "DontDestroy", EditorStyles.boldLabel);
+            }
+        }
+    }
+#endif
 }
