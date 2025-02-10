@@ -46,11 +46,11 @@ namespace MysticIsle.DreamEngine
             if (obj != null && obj.GetComponent<DontDestroy>() != null)
             {
                 // 调整位置：增加右侧留白，避免太靠近右边的 > 按钮
-                Rect labelRect = new(selectionRect.x + selectionRect.width - 60, selectionRect.y, 60, selectionRect.height);
+                Rect labelRect = new(selectionRect.x + selectionRect.width - 80, selectionRect.y, 80, selectionRect.height);
                 // 设置标签颜色为半透明
                 Color oldColor = GUI.color;
                 GUI.color = new Color(oldColor.r, oldColor.g, oldColor.b, 0.5f);
-                EditorGUI.LabelField(labelRect, "DontDestroy", EditorStyles.boldLabel);
+                EditorGUI.LabelField(labelRect, "[DontDestroy]", EditorStyles.boldLabel);
                 GUI.color = oldColor;
             }
         }
