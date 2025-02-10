@@ -569,7 +569,7 @@ namespace MysticIsle.DreamEngine.UI
         /// </summary>
         /// <param name="screenPosition">The screen position.</param>
         /// <returns>The converted world position, or Vector3.zero if conversion fails.</returns>
-        protected Vector3 ConvertScreenPointToWorldPoint(Vector3 screenPosition)
+        public Vector3 ConvertScreenPointToWorldPoint(Vector3 screenPosition)
         {
             // 获取 Canvas 的 RectTransform
             RectTransform canvasRect = this.Canvas.GetComponent<RectTransform>();
@@ -586,11 +586,40 @@ namespace MysticIsle.DreamEngine.UI
         }
 
         /// <summary>
+        /// 将世界坐标转换为屏幕坐标。
+        /// </summary>
+        /// <param name="worldPosition">世界坐标</param>
+        /// <returns>
+        /// 转换后的屏幕坐标。
+        /// </returns>
+        public Vector2 ConvertWorldPointToScreenPoint(Vector3 worldPosition)
+        {
+            // 如果 Canvas 处于 ScreenSpaceOverlay 模式，则不需要摄像机，否则使用 Canvas 的 worldCamera
+            Camera cam = (this.Canvas.renderMode == RenderMode.ScreenSpaceOverlay) ? null : this.Canvas.worldCamera;
+
+            // 利用 RectTransformUtility 将世界点转换为屏幕点
+            return RectTransformUtility.WorldToScreenPoint(cam, worldPosition);
+        }
+
+        /// <summary>
+        /// 将当前 Widget 的 RectTransform 位置（世界坐标）转换为屏幕坐标。
+        /// 该方法直接使用 Widget 自身 RectTransform 的 position 作为转换的基础。
+        /// </summary>
+        /// <returns>
+        /// 转换后的屏幕坐标。
+        /// </returns>
+        public Vector2 ConvertWorldPointToScreenPoint()
+        {
+            // 调用重载方法，将 Widget 的 RectTransform 位置转换为屏幕坐标
+            return ConvertWorldPointToScreenPoint(this.RectTransform.position);
+        }
+
+        /// <summary>
         /// Converts a screen position to a local position relative to the Canvas.
         /// </summary>
         /// <param name="screenPosition">The screen position.</param>
         /// <returns>The converted local position, or Vector2.zero if conversion fails.</returns>
-        protected Vector2 ConvertScreenPointToLocalPosition(Vector3 screenPosition)
+        public Vector2 ConvertScreenPointToLocalPosition(Vector3 screenPosition)
         {
             // 获取 Canvas 的 RectTransform
             RectTransform canvasRect = this.Canvas.GetComponent<RectTransform>();
