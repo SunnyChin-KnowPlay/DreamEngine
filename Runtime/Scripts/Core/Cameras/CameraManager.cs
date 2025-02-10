@@ -1,4 +1,3 @@
-using Cinemachine;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -15,7 +14,7 @@ namespace MysticIsle.DreamEngine.Core
         #region Fields
         // 使用词典来管理摄像机堆栈，key为堆栈类型，value为队列
         private readonly Dictionary<int, Queue<Camera>> cameraQueues = new();
-        private CinemachineBrain _cinemachineBrain;
+
         #endregion
 
         #region Properties
@@ -24,24 +23,6 @@ namespace MysticIsle.DreamEngine.Core
         /// </summary>
         public Camera MainCamera => Camera.main;
 
-        /// <summary>
-        /// 获取主相机的 CinemachineBrain。
-        /// </summary>
-        public CinemachineBrain CinemachineBrain
-        {
-            get
-            {
-                if (_cinemachineBrain == null)
-                {
-                    _cinemachineBrain = MainCamera.GetComponent<CinemachineBrain>();
-                    if (_cinemachineBrain == null)
-                    {
-                        Debug.LogError("CinemachineBrain not found in the scene.");
-                    }
-                }
-                return _cinemachineBrain;
-            }
-        }
         #endregion
 
         #region Unity Lifecycle

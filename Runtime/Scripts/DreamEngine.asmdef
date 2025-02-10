@@ -6,7 +6,6 @@
         "Unity.TextMeshPro",
         "Unity.Addressables",
         "Unity.ResourceManager",
-        "Cinemachine",
         "Unity.RenderPipelines.Universal.Runtime"
     ],
     "includePlatforms": [],
