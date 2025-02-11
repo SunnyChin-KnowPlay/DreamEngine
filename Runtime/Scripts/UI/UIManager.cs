@@ -60,7 +60,7 @@ namespace MysticIsle.DreamEngine.UI
         {
             Canvas canvas = this.Canvas;
             if (canvas != null && canvas.worldCamera != null)
-                CameraManager.Instance.RemoveCamera(canvas.worldCamera);
+                CameraManager.Instance?.RemoveCamera(canvas.worldCamera);
         }
 
         /// <summary>
