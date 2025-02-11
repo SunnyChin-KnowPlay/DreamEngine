@@ -31,6 +31,23 @@ namespace MysticIsle.DreamEngine.UI
         /// </summary>
         public Canvas Canvas => this.GetComponent<Canvas>();
 
+        private int sortingLayerId = 0;
+        /// <summary>
+        /// 相机排序层级ID，设置后会更新当前Canvas的相机
+        /// </summary>
+        public int SortingLayerId
+        {
+            get => sortingLayerId;
+            set
+            {
+                if (sortingLayerId != value)
+                {
+                    sortingLayerId = value;
+                    RefreshCameraSorting();
+                }
+            }
+        }
+
         #endregion
 
         #region Unity生命周期方法
@@ -50,7 +67,7 @@ namespace MysticIsle.DreamEngine.UI
         {
             Canvas canvas = this.Canvas;
             if (canvas != null && canvas.worldCamera != null)
-                CameraManager.Instance.AddCamera(canvas.worldCamera, GetCameraSortingId());
+                CameraManager.Instance.AddCamera(canvas.worldCamera, SortingLayerId);
         }
 
         /// <summary>
@@ -92,12 +109,16 @@ namespace MysticIsle.DreamEngine.UI
         }
 
         /// <summary>
-        /// 获取相机排序ID，可重写
+        /// 刷新相机排序：先移除当前Canvas的相机，再用新的排序层级添加
         /// </summary>
-        /// <returns></returns>
-        protected virtual int GetCameraSortingId()
+        private void RefreshCameraSorting()
         {
-            return 0;
+            Canvas canvas = this.Canvas;
+            if (canvas != null && canvas.worldCamera != null)
+            {
+                CameraManager.Instance.RemoveCamera(canvas.worldCamera);
+                CameraManager.Instance.AddCamera(canvas.worldCamera, sortingLayerId);
+            }
         }
 
         #endregion

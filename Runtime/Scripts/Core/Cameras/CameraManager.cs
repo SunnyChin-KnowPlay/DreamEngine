@@ -49,17 +49,18 @@ namespace MysticIsle.DreamEngine.Core
                 return;
             }
 
+            // 先从所有队列中移除该相机（如果存在）
+            RemoveCamera(camera);
+
             if (!cameraQueues.ContainsKey(stackType))
             {
                 cameraQueues[stackType] = new Queue<Camera>();
             }
 
-            if (!cameraQueues[stackType].Contains(camera))
-            {
-                SetupCamera(camera);
-                cameraQueues[stackType].Enqueue(camera);
-                UpdateCameraStack();
-            }
+            // 设置相机属性，让其作为覆盖层正确渲染
+            SetupCamera(camera);
+            cameraQueues[stackType].Enqueue(camera);
+            UpdateCameraStack();
         }
 
         /// <summary>
