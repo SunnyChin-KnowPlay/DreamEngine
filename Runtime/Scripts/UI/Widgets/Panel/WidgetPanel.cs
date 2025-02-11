@@ -18,7 +18,6 @@ namespace MysticIsle.DreamEngine.UI
         Blur = 1 << 1,
     }
 
-    [RequireComponent(typeof(Canvas))]
     public partial class WidgetPanel : Widget
     {
         #region Params
@@ -57,18 +56,12 @@ namespace MysticIsle.DreamEngine.UI
         protected override void OnEnable()
         {
             base.OnEnable();
-            Canvas canvas = this.Canvas;
-            if (null != canvas && null != canvas.worldCamera)
-                CameraManager.Instance.AddCamera(canvas.worldCamera, canvas.sortingLayerID);
             ApplyEnter().Forget();
         }
 
         protected override void OnDisable()
         {
             base.OnDisable();
-            Canvas canvas = this.Canvas;
-            if (null != canvas && null != canvas.worldCamera)
-                CameraManager.Instance.RemoveCamera(canvas.worldCamera);
         }
         #endregion
 
@@ -80,19 +73,6 @@ namespace MysticIsle.DreamEngine.UI
         #endregion
 
         #region Logic
-        internal void SetSortingLayer(int sortingLayerID)
-        {
-            if (this.Canvas.sortingLayerID != sortingLayerID)
-            {
-                this.Canvas.sortingLayerID = sortingLayerID;
-                if (null != this.Canvas.worldCamera)
-                {
-                    CameraManager.Instance.RemoveCamera(this.Canvas.worldCamera);
-                    CameraManager.Instance.AddCamera(this.Canvas.worldCamera, sortingLayerID);
-                }
-            }
-        }
-
         private bool CheckHasAnimationFunction(EPanelSwitchAnimationFunction function)
         {
             return (animationFunction & function) == function;

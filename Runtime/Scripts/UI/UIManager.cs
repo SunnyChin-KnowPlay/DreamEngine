@@ -1,3 +1,4 @@
+using MysticIsle.DreamEngine.Core;
 using Sirenix.OdinInspector;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -8,30 +9,31 @@ namespace MysticIsle.DreamEngine.UI
     /// <summary>
     /// UI管理器
     /// </summary>
+    [RequireComponent(typeof(Canvas))]
     public abstract class UIManager : MonoBehaviour, IManager
     {
-        #region Fields
+        #region 字段与属性
 
         /// <summary>
-        /// panel栈
+        /// 面板栈：管理当前显示的面板顺序
         /// </summary>
         [ShowInInspector]
         private readonly Stack<WidgetPanel> panelStack = new();
 
         /// <summary>
-        /// 界面词典 界面有唯一性
-        /// key:界面路径
+        /// 界面词典：每个面板路径对应唯一的面板
         /// </summary>
         [ShowInInspector]
         private readonly Dictionary<string, WidgetPanel> panels = new();
 
+        /// <summary>
+        /// 当前Canvas组件
+        /// </summary>
+        public Canvas Canvas => this.GetComponent<Canvas>();
+
         #endregion
 
-        #region Properties
-
-        #endregion
-
-        #region MonoBehaviour Methods
+        #region Unity生命周期方法
 
         /// <summary>
         /// Unity的Awake方法
@@ -42,7 +44,27 @@ namespace MysticIsle.DreamEngine.UI
         }
 
         /// <summary>
-        /// Unity的OnDestroy方法
+        /// Unity的OnEnable方法
+        /// </summary>
+        protected virtual void OnEnable()
+        {
+            Canvas canvas = this.Canvas;
+            if (canvas != null && canvas.worldCamera != null)
+                CameraManager.Instance.AddCamera(canvas.worldCamera, GetCameraSortingId());
+        }
+
+        /// <summary>
+        /// Unity的OnDisable方法
+        /// </summary>
+        protected virtual void OnDisable()
+        {
+            Canvas canvas = this.Canvas;
+            if (canvas != null && canvas.worldCamera != null)
+                CameraManager.Instance.RemoveCamera(canvas.worldCamera);
+        }
+
+        /// <summary>
+        /// Unity的OnDestroy方法，销毁前卸载所有面板
         /// </summary>
         protected virtual void OnDestroy()
         {
@@ -50,18 +72,17 @@ namespace MysticIsle.DreamEngine.UI
         }
 
         /// <summary>
-        /// 更新方法
+        /// Unity的Update方法：检查栈顶面板状态，并做相应处理
         /// </summary>
         protected virtual void Update()
         {
             if (panelStack.Count > 0)
             {
                 var topPanel = panelStack.Peek();
-                // 如果栈顶面板被关闭了，就将其弹出
+                // 如果栈顶面板已关闭，则弹出；若栈不为空则显示新的栈顶
                 if (!topPanel.gameObject.activeSelf)
                 {
                     panelStack.Pop();
-                    // 可选：如果弹出后栈还有面板，则显示新的栈顶
                     if (panelStack.Count > 0)
                     {
                         panelStack.Peek().Show();
@@ -70,12 +91,21 @@ namespace MysticIsle.DreamEngine.UI
             }
         }
 
+        /// <summary>
+        /// 获取相机排序ID，可重写
+        /// </summary>
+        /// <returns></returns>
+        protected virtual int GetCameraSortingId()
+        {
+            return 0;
+        }
+
         #endregion
 
-        #region Panel Management
+        #region 面板管理 - 基础操作
 
         /// <summary>
-        /// 设置面板
+        /// 设置面板归属当前UIManager
         /// </summary>
         /// <param name="go">面板对象</param>
         private void SetupPanel(WidgetPanel go)
@@ -84,18 +114,18 @@ namespace MysticIsle.DreamEngine.UI
         }
 
         /// <summary>
-        /// 获取面板
+        /// 获取已有面板
         /// </summary>
         /// <param name="path">面板路径</param>
         /// <returns>面板对象</returns>
         public WidgetPanel GetPanel(string path)
         {
-            this.panels.TryGetValue(path, out WidgetPanel panel);
+            panels.TryGetValue(path, out WidgetPanel panel);
             return panel;
         }
 
         /// <summary>
-        /// 获取面板
+        /// 泛型获取面板
         /// </summary>
         /// <typeparam name="TPanel">面板类型</typeparam>
         /// <returns>面板对象</returns>
@@ -111,7 +141,7 @@ namespace MysticIsle.DreamEngine.UI
         }
 
         /// <summary>
-        /// 加载面板
+        /// 加载面板（同步）
         /// </summary>
         /// <param name="path">面板路径</param>
         /// <returns>面板对象</returns>
@@ -121,47 +151,48 @@ namespace MysticIsle.DreamEngine.UI
             if (panel == null)
             {
                 GameObject go = Helper.InitializeGameObject(path);
-
                 if (go != null)
                 {
                     panel = go.GetComponent<WidgetPanel>();
-                    this.panels.Add(path, panel);
+                    panels.Add(path, panel);
                 }
             }
-
             return panel;
         }
 
         /// <summary>
-        /// 卸载面板
+        /// 卸载指定面板
         /// </summary>
         /// <param name="path">面板路径</param>
         public void UnloadPanel(string path)
         {
             WidgetPanel panel = GetPanel(path);
-
             if (panel != null)
             {
-                this.panels.Remove(path);
+                panels.Remove(path);
                 Helper.DestroyGameObject(panel.gameObject);
             }
         }
 
         /// <summary>
-        /// 卸载所有面板
+        /// 卸载所有面板并清空面板栈
         /// </summary>
         public void UnloadAllPanels()
         {
-            this.panelStack.Clear();
+            panelStack.Clear();
             foreach (var kvp in panels)
             {
                 Helper.DestroyGameObject(kvp.Value.gameObject);
             }
-            this.panels.Clear();
+            panels.Clear();
         }
 
+        #endregion
+
+        #region 面板管理 - 栈操作
+
         /// <summary>
-        /// 推入面板
+        /// 推入面板：同步加载并显示，管理面板栈逻辑
         /// </summary>
         /// <typeparam name="TControl">面板控制类型</typeparam>
         /// <returns>面板控制对象</returns>
@@ -172,28 +203,26 @@ namespace MysticIsle.DreamEngine.UI
         }
 
         /// <summary>
-        /// 推入面板
+        /// 推入面板：带自定义面板路径
         /// </summary>
         /// <typeparam name="TControl">面板控制类型</typeparam>
         /// <param name="path">面板路径</param>
         /// <returns>面板控制对象</returns>
         public TControl PushPanel<TControl>(string path) where TControl : PanelControl
         {
-            // 1. 先尝试加载面板
-            WidgetPanel panelWidget = this.LoadPanel(path);
+            // 1. 加载面板
+            WidgetPanel panelWidget = LoadPanel(path);
             if (panelWidget == null)
                 return null;
 
             TControl control;
-            // 2. 处理面板控件类型：若没有PanelControl则添加，若类型不匹配则销毁后重新添加
+            // 2. 确保面板持有正确的PanelControl
             if (!panelWidget.TryGetComponent<PanelControl>(out PanelControl existingPanel))
             {
-                // 如果没有任何PanelControl，就直接添加TControl
                 control = panelWidget.gameObject.AddComponent<TControl>();
             }
             else
             {
-                // 已存在PanelControl，但类型不是TControl
                 if (existingPanel is not TControl)
                 {
                     GameObject.Destroy(existingPanel);
@@ -201,24 +230,21 @@ namespace MysticIsle.DreamEngine.UI
                 }
                 else
                 {
-                    // 已经是正确类型
                     control = existingPanel as TControl;
                 }
             }
-            // 3. 初始化面板
+
+            // 3. 设置面板归属
             SetupPanel(panelWidget);
 
-            // 4. 处理面板在堆栈中的逻辑
+            // 4. 面板栈逻辑：如果面板已存在栈中则回退至该面板，否则隐藏当前并新推入
             if (panelStack.Contains(panelWidget))
             {
-                // 如果该面板在堆栈里，就弹出至该面板为止，并显示它
                 while (panelStack.Count > 0 && panelStack.Peek() != panelWidget)
                 {
                     var topPanel = panelStack.Pop();
                     topPanel.Hide();
                 }
-
-                // 将目标面板显示
                 if (panelStack.Count > 0 && panelStack.Peek() == panelWidget)
                 {
                     panelWidget.Show();
@@ -226,51 +252,36 @@ namespace MysticIsle.DreamEngine.UI
             }
             else
             {
-                // 如果堆栈顶部有别的面板，则先Hide它，再Push新面板并Show
                 if (panelStack.Count > 0)
                 {
-                    var topPanel = panelStack.Peek();
-                    topPanel.Hide();
+                    panelStack.Peek().Hide();
                 }
-
                 panelStack.Push(panelWidget);
                 panelWidget.Show();
             }
-
             return control;
         }
 
         /// <summary>
-        /// Pops all panels off the stack except the top one.
+        /// 将面板栈弹出到只剩栈顶一个面板
         /// </summary>
         public void PopUntilTop()
         {
             if (panelStack.Count == 0)
             {
-                Debug.LogWarning("No panels to pop to root!");
+                Debug.LogWarning("无面板可回退至根面板！");
                 return;
             }
-
-            // 只要栈中超过1个面板，就不断Pop并Hide
             while (panelStack.Count > 1)
             {
                 var panel = panelStack.Pop();
-                if (panel != null)
-                {
-                    panel.Hide();
-                }
+                panel?.Hide();
             }
-
-            // 栈顶面板始终保持并Show
-            var topPanel = panelStack.Peek();
-            if (topPanel != null)
-            {
-                topPanel.Show();
-            }
+            panelStack.Peek()?.Show();
         }
 
         /// <summary>
-        /// 替换面板
+        /// 替换面板：移除当前栈顶面板后推入新面板
         /// </summary>
         /// <typeparam name="TControl">面板控制类型</typeparam>
         /// <returns>面板控制对象</returns>
@@ -280,7 +291,7 @@ namespace MysticIsle.DreamEngine.UI
         }
 
         /// <summary>
-        /// 替换面板
+        /// 替换面板：带自定义面板路径
         /// </summary>
         /// <typeparam name="TControl">面板控制类型</typeparam>
         /// <param name="path">面板路径</param>
@@ -292,12 +303,11 @@ namespace MysticIsle.DreamEngine.UI
                 WidgetPanel topPanel = panelStack.Pop();
                 GameObject.Destroy(topPanel.gameObject);
             }
-
             return PushPanel<TControl>(path);
         }
 
         /// <summary>
-        /// 弹出所有面板
+        /// 清除所有面板（隐藏所有，并清空栈）
         /// </summary>
         public void ClearAllPanels()
         {
@@ -307,6 +317,10 @@ namespace MysticIsle.DreamEngine.UI
                 topPanel?.Hide();
             }
         }
+
+        #endregion
+
+        #region 面板管理 - 异步操作
 
         /// <summary>
         /// 异步加载面板
@@ -319,37 +333,35 @@ namespace MysticIsle.DreamEngine.UI
             if (panel == null)
             {
                 var go = await Helper.InitializeGameObjectAsync(path);
-
                 if (go != null)
                 {
                     panel = go.GetComponent<WidgetPanel>();
-                    this.panels.Add(path, panel);
+                    panels.Add(path, panel);
                 }
             }
-
             return panel;
         }
 
         /// <summary>
-        /// 异步显示面板
+        /// 异步展示面板（泛型）
         /// </summary>
         /// <typeparam name="TControl">面板控制类型</typeparam>
         /// <returns>面板控制对象</returns>
         public async Task<TControl> ShowPanelAsync<TControl>() where TControl : PanelControl
         {
             string path = PanelControl.GetPath<TControl>();
-            return await this.ShowPanelAsync<TControl>(path);
+            return await ShowPanelAsync<TControl>(path);
         }
 
         /// <summary>
-        /// 异步显示面板
+        /// 异步展示面板（带自定义路径）
         /// </summary>
         /// <typeparam name="TControl">面板控制类型</typeparam>
         /// <param name="path">面板路径</param>
         /// <returns>面板控制对象</returns>
         public async Task<TControl> ShowPanelAsync<TControl>(string path) where TControl : PanelControl
         {
-            WidgetPanel widgetPanel = await this.LoadPanelAsync(path);
+            WidgetPanel widgetPanel = await LoadPanelAsync(path);
             if (widgetPanel == null)
                 return null;
 
@@ -365,14 +377,16 @@ namespace MysticIsle.DreamEngine.UI
 
             widgetPanel.Show();
             SetupPanel(widgetPanel);
-
             widgetPanel.TryGetComponent(out TControl control);
-
             return control;
         }
 
+        #endregion
+
+        #region 面板管理 - 同步显示操作
+
         /// <summary>
-        /// 显示面板
+        /// 同步显示面板（泛型）
         /// </summary>
         /// <typeparam name="TControl">面板控制类型</typeparam>
         /// <returns>面板控制对象</returns>
@@ -382,7 +396,7 @@ namespace MysticIsle.DreamEngine.UI
         }
 
         /// <summary>
-        /// 显示面板
+        /// 同步显示面板（带自定义路径）
         /// </summary>
         /// <typeparam name="TControl">面板控制类型</typeparam>
         /// <param name="path">面板路径</param>
@@ -390,7 +404,7 @@ namespace MysticIsle.DreamEngine.UI
         public TControl ShowPanel<TControl>(string path) where TControl : PanelControl
         {
             TControl control = null;
-            WidgetPanel panelWidget = this.LoadPanel(path);
+            WidgetPanel panelWidget = LoadPanel(path);
             if (panelWidget == null)
                 return control;
 
@@ -406,31 +420,18 @@ namespace MysticIsle.DreamEngine.UI
 
             panelWidget.Show();
             SetupPanel(panelWidget);
-
             panelWidget.TryGetComponent<TControl>(out control);
             return control;
         }
 
         /// <summary>
-        /// 隐藏面板
+        /// 隐藏指定面板
         /// </summary>
         /// <param name="path">面板路径</param>
         public void HidePanel(string path)
         {
-            WidgetPanel panel = this.GetPanel(path);
-            if (null != panel)
-            {
-                panel.Hide();
-            }
-        }
-
-        /// <summary>
-        /// 检查面板栈是否为空
-        /// </summary>
-        /// <returns>是否为空</returns>
-        protected virtual bool IsPanelStackEmpty()
-        {
-            return panelStack.Count == 0;
+            WidgetPanel panel = GetPanel(path);
+            panel?.Hide();
         }
 
         #endregion
