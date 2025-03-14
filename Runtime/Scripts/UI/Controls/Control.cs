@@ -13,7 +13,6 @@ namespace MysticIsle.DreamEngine.UI
 
         public OnControlHandle OnEnableEvent;
         public OnControlHandle OnDisableEvent;
-
         #endregion
 
         #region Params
@@ -46,7 +45,18 @@ namespace MysticIsle.DreamEngine.UI
 
         protected virtual void OnDestroy()
         {
+        }
 
+        /// <summary>
+        /// 在每帧检查是否处于脏状态，如果是则调用刷新函数。
+        /// </summary>
+        protected virtual void Update()
+        {
+            if (isDirty)
+            {
+                OnRefresh();
+                isDirty = false;
+            }
         }
         #endregion
 
@@ -97,6 +107,28 @@ namespace MysticIsle.DreamEngine.UI
         public virtual void Close()
         {
             this.FirstWidget.Hide();
+        }
+        #endregion
+
+        #region Refresh
+        // 内部标记表示控件数据已修改，需要刷新
+        private bool isDirty = false;
+
+        /// <summary>
+        /// 设置控件为脏状态，下一帧将触发刷新操作。
+        /// </summary>
+        public void SetDirty()
+        {
+            isDirty = true;
+        }
+
+        /// <summary>
+        /// 当控件刷新时调用此函数进行更新显示。
+        /// 子类可重写该方法以实现自定义刷新逻辑。
+        /// </summary>
+        protected virtual void OnRefresh()
+        {
+            // 默认实现为空
         }
         #endregion
     }

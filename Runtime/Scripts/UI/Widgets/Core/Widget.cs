@@ -112,26 +112,14 @@ namespace MysticIsle.DreamEngine.UI
 
         public bool Draggable { get; set; } = false; // Indicates if the widget is draggable
 
-        public Canvas Canvas
-        {
-            get
-            {
-                return GetComponentInParent<Canvas>();
-            }
-        }
+        public Canvas Canvas => GetComponentInParent<Canvas>();
         public CanvasGroup CanvasGroup => canvasGroup; // CanvasGroup for managing UI interactions
         private CanvasGroup canvasGroup;
 
         /// <summary>
         /// UI管理器
         /// </summary>
-        public virtual UIManager UIManager
-        {
-            get
-            {
-                return GetComponentInParent<UIManager>();
-            }
-        }
+        public virtual UIManager UIManager => GetComponentInParent<UIManager>();
         #endregion
 
         #region References

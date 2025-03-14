@@ -2,8 +2,6 @@ using Sirenix.OdinInspector;
 using Sirenix.Serialization;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
-using MysticIsle.DreamEngine.Core;
-
 
 namespace MysticIsle.DreamEngine.UI
 {
@@ -43,8 +41,6 @@ namespace MysticIsle.DreamEngine.UI
         [FoldoutGroup("Panel/Animation Settings"), EnumToggleButtons, PropertyOrder(0)]
         public EPanelSwitchAnimationFunction animationFunction;
         #endregion
-
-
 
         #region Mono
         protected override void Awake()

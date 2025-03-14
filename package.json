@@ -1,33 +1,33 @@
 {
-    "name": "com.mysticisle.dreamengine",
-    "displayName": "DreamEngine",
-    "version": "0.0.25",
-    "unity": "2021.3",
-    "description": "A lightweight game framework for Unity, providing core systems like asset management, UI controls, and async task utilities.",
-    "dependencies": {
-        "com.unity.addressables": "2.2.2",
-        "com.unity.render-pipelines.universal": "17.0.3",
-        "com.unity.cinemachine": "2.10.3",
-        "com.unity.ugui": "1.0.0",
-        "com.cysharp.unitask": "2.5.10"
-    },
-    "author": "Mystic Isle <support@mysticisle.com> (https://mysticisle.com)",
-    "keywords": [
-        "framework",
-        "engine",
-        "tools"
-    ],
-    "main": "index.js",
-    "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/SunnyChin-KnowPlay/DreamEngine.git"
-    },
-    "license": "MIT",
-    "bugs": {
-        "url": "https://github.com/SunnyChin-KnowPlay/DreamEngine/issues"
-    },
-    "homepage": "https://github.com/SunnyChin-KnowPlay/DreamEngine#readme"
+  "name": "com.mysticisle.dreamengine",
+  "displayName": "DreamEngine",
+  "version": "0.0.26",
+  "unity": "2021.3",
+  "description": "A lightweight game framework for Unity, providing core systems like asset management, UI controls, and async task utilities.",
+  "dependencies": {
+    "com.unity.addressables": "2.2.2",
+    "com.unity.render-pipelines.universal": "17.0.3",
+    "com.unity.cinemachine": "2.10.3",
+    "com.unity.ugui": "1.0.0",
+    "com.cysharp.unitask": "2.5.10"
+  },
+  "author": "Mystic Isle <support@mysticisle.com> (https://mysticisle.com)",
+  "keywords": [
+    "framework",
+    "engine",
+    "tools"
+  ],
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SunnyChin-KnowPlay/DreamEngine.git"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/SunnyChin-KnowPlay/DreamEngine/issues"
+  },
+  "homepage": "https://github.com/SunnyChin-KnowPlay/DreamEngine#readme"
 }
