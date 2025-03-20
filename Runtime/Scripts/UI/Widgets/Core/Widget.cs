@@ -500,7 +500,7 @@ namespace MysticIsle.DreamEngine.UI
         /// Called when a drag operation begins.
         /// </summary>
         /// <param name="eventData">The event data associated with the drag event.</param>
-        public void OnBeginDrag(PointerEventData eventData)
+        public virtual void OnBeginDrag(PointerEventData eventData)
         {
             if (!Draggable) return;
 
@@ -512,7 +512,7 @@ namespace MysticIsle.DreamEngine.UI
         /// Called during a drag operation.
         /// </summary>
         /// <param name="eventData">The event data associated with the drag event.</param>
-        public void OnDrag(PointerEventData eventData)
+        public virtual void OnDrag(PointerEventData eventData)
         {
             if (!Draggable) return;
 
@@ -527,7 +527,7 @@ namespace MysticIsle.DreamEngine.UI
         /// Called when a drag operation ends.
         /// </summary>
         /// <param name="eventData">The event data associated with the drag event.</param>
-        public void OnEndDrag(PointerEventData eventData)
+        public virtual void OnEndDrag(PointerEventData eventData)
         {
             if (!Draggable) return;
 
@@ -539,7 +539,7 @@ namespace MysticIsle.DreamEngine.UI
         /// Called when a drop operation occurs.
         /// </summary>
         /// <param name="eventData">The event data associated with the drop event.</param>
-        public void OnDrop(PointerEventData eventData)
+        public virtual void OnDrop(PointerEventData eventData)
         {
             if (!Draggable) return;
 
