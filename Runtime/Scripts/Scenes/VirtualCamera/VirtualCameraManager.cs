@@ -51,8 +51,8 @@ namespace MysticIsle.DreamEngine.Scenes
 
         private void Awake()
         {
-            // 自动获取所有子物体上的虚拟相机（包括非激活状态）
-            var cams = GetComponentsInChildren<CinemachineVirtualCameraBase>(true);
+            // 从当前场景中获取所有 CinemachineVirtualCameraBase（包括非激活状态）
+            var cams = FindObjectsByType<CinemachineVirtualCameraBase>(FindObjectsSortMode.None);
             if (cams != null && cams.Length > 0)
             {
                 foreach (var cam in cams)
@@ -67,12 +67,8 @@ namespace MysticIsle.DreamEngine.Scenes
                         Debug.LogWarning($"Duplicate virtual camera name detected: {key}. Skipping camera.");
                     }
                 }
-                // 默认将字典中第一个虚拟相机设为激活状态
-                foreach (var kvp in virtualCameras)
-                {
-                    SetActiveCamera(kvp.Value);
-                    break;
-                }
+                // 默认激活字典中的第一个虚拟相机
+                SetActiveCamera(virtualCameras.Values.First());
             }
         }
 
