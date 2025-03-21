@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Cinemachine;
 using UnityEngine;
 
@@ -16,7 +17,7 @@ namespace MysticIsle.DreamEngine.Scenes
         // 存储所有管理的虚拟相机（基于 Cinemachine），键为虚拟相机的名称
         private readonly Dictionary<string, CinemachineVirtualCameraBase> virtualCameras = new();
 
-        // 当前激活的虚拟相机
+        // 内部记录的当前激活的虚拟相机（用于切换时设置优先级）
         private CinemachineVirtualCameraBase activeCamera;
 
         #endregion
@@ -27,6 +28,22 @@ namespace MysticIsle.DreamEngine.Scenes
         /// 获取只读的虚拟相机字典。
         /// </summary>
         public IReadOnlyDictionary<string, CinemachineVirtualCameraBase> VirtualCameras => virtualCameras;
+
+        /// <summary>
+        /// 通过返回 Priority 最高的虚拟相机来获取当前激活的虚拟相机。
+        /// </summary>
+        public CinemachineVirtualCameraBase ActiveCamera
+        {
+            get
+            {
+                if (virtualCameras.Count == 0)
+                {
+                    return null;
+                }
+                // 返回 Priority 最高的虚拟相机
+                return virtualCameras.Values.OrderByDescending(cam => cam.Priority).First();
+            }
+        }
 
         #endregion
 
@@ -50,7 +67,7 @@ namespace MysticIsle.DreamEngine.Scenes
                         Debug.LogWarning($"Duplicate virtual camera name detected: {key}. Skipping camera.");
                     }
                 }
-                // 默认激活字典中的第一个虚拟相机
+                // 默认将字典中第一个虚拟相机设为激活状态
                 foreach (var kvp in virtualCameras)
                 {
                     SetActiveCamera(kvp.Value);
@@ -105,7 +122,6 @@ namespace MysticIsle.DreamEngine.Scenes
             string key = vcam.gameObject.name;
             if (virtualCameras.ContainsKey(key))
             {
-                // 如果被移除的虚拟相机当前处于激活状态，则清空激活引用
                 if (activeCamera == vcam)
                 {
                     activeCamera = null;
@@ -120,7 +136,7 @@ namespace MysticIsle.DreamEngine.Scenes
 
         /// <summary>
         /// 设置当前激活的虚拟相机。
-        /// 只有激活的虚拟相机会被启用，其他的将被禁用。
+        /// 通过调整虚拟相机的 Priority 属性来控制其激活状态，Priority 高的将优先激活，Priority 低的将失去激活效果。
         /// </summary>
         /// <param name="vcam">要激活的虚拟相机实例。</param>
         public void SetActiveCamera(CinemachineVirtualCameraBase vcam)
@@ -138,20 +154,18 @@ namespace MysticIsle.DreamEngine.Scenes
             }
 
             activeCamera = vcam;
-            // 只激活当前选中的虚拟相机，禁用其他虚拟相机
+            // 通过调整 Priority 来控制激活状态：将当前摄像机设为高优先级，其它摄像机设为低优先级
             foreach (var kvp in virtualCameras)
             {
-                kvp.Value.gameObject.SetActive(kvp.Value == vcam);
+                if (kvp.Value == vcam)
+                {
+                    kvp.Value.Priority = 10; // 高优先级
+                }
+                else
+                {
+                    kvp.Value.Priority = 0; // 低优先级
+                }
             }
-        }
-
-        /// <summary>
-        /// 获取当前激活的虚拟相机。
-        /// </summary>
-        /// <returns>当前激活的 Cinemachine 虚拟相机实例。</returns>
-        public CinemachineVirtualCameraBase GetActiveCamera()
-        {
-            return activeCamera;
         }
 
         /// <summary>
