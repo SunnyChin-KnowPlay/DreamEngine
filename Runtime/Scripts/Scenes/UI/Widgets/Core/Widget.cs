@@ -137,14 +137,14 @@ namespace MysticIsle.DreamEngine.UI
 
         // 将按钮横向排列
         [HorizontalGroup("Core/References/Buttons")]
-        [Button("Clear References")]
+        [Button("Clear")]
         public void ClearReferences()
         {
             references.Clear();
         }
 
         [HorizontalGroup("Core/References/Buttons")]
-        [Button("Add All Children References")]
+        [Button("Add All Children")]
         public void AddAllChildrenReferences()
         {
             // 获取当前物体所有的子 Transform（包括隐藏和孙子节点）
@@ -169,7 +169,7 @@ namespace MysticIsle.DreamEngine.UI
         }
 
         [HorizontalGroup("Core/References/Buttons")]
-        [Button("Clear Null References")]
+        [Button("Clear Null")]
         public void ClearNullReferences()
         {
             // 收集所有值为 null 的键
