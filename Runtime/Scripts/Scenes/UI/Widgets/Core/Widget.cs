@@ -155,10 +155,6 @@ namespace MysticIsle.DreamEngine.UI
                 if (child == this.transform)
                     continue;
 
-                // 排除不在激活状态的对象
-                if (!child.gameObject.activeInHierarchy)
-                    continue;
-
                 // 如果对象在编辑器中隐藏（例如 HideInHierarchy），则跳过
                 if ((child.gameObject.hideFlags & HideFlags.HideInHierarchy) != 0)
                     continue;
@@ -169,6 +165,26 @@ namespace MysticIsle.DreamEngine.UI
                 {
                     references.Add(key, child.gameObject);
                 }
+            }
+        }
+
+        [HorizontalGroup("Core/References/Buttons")]
+        [Button("Clear Null References")]
+        public void ClearNullReferences()
+        {
+            // 收集所有值为 null 的键
+            var keysToRemove = new List<string>();
+            foreach (var kvp in references)
+            {
+                if (kvp.Value == null)
+                {
+                    keysToRemove.Add(kvp.Key);
+                }
+            }
+            // 从字典中移除收集到的键
+            foreach (var key in keysToRemove)
+            {
+                references.Remove(key);
             }
         }
         #endregion
