@@ -123,9 +123,6 @@ namespace MysticIsle.DreamEngine.UI
         #endregion
 
         #region References
-        /// <summary>
-        /// Dictionary of references associated with the widget.
-        /// </summary>
         [TitleGroup("Core/References", nameof(Widget)), ShowInInspector]
         [OdinSerialize]
         [DictionaryDrawerSettings(DisplayMode = DictionaryDisplayOptions.OneLine, KeyLabel = "Key", ValueLabel = "Reference")]
@@ -133,18 +130,19 @@ namespace MysticIsle.DreamEngine.UI
 
         [TitleGroup("Core/References", nameof(Widget)), ShowInInspector]
         [CustomValueDrawer(nameof(OnDrawReferenceDragArea))]
-        public string dragArea; // Area for dragging references
+        public string dragArea; // 拖拽引用的区域
 
-        // 将按钮横向排列
         [HorizontalGroup("Core/References/Buttons")]
-        [Button("Clear")]
+        [GUIColor(1f, 0.4f, 0.4f)] // 红色调按钮
+        [Button("Clear All References")]
         public void ClearReferences()
         {
             references.Clear();
         }
 
         [HorizontalGroup("Core/References/Buttons")]
-        [Button("Add All Children")]
+        [GUIColor(0.4f, 0.8f, 0.4f)] // 绿色调按钮
+        [Button("Add All Children References")]
         public void AddAllChildrenReferences()
         {
             // 获取当前物体所有的子 Transform（包括隐藏和孙子节点）
@@ -154,12 +152,10 @@ namespace MysticIsle.DreamEngine.UI
                 // 排除自己
                 if (child == this.transform)
                     continue;
-
-                // 如果对象在编辑器中隐藏（例如 HideInHierarchy），则跳过
+                // 如果对象在编辑器中隐藏（例如通过 HideInHierarchy 隐藏），则跳过
                 if ((child.gameObject.hideFlags & HideFlags.HideInHierarchy) != 0)
                     continue;
-
-                // 使用 child.gameObject 作为引用
+                // 使用 child.gameObject 作为引用并生成唯一键
                 string key = GenerateKey(child.gameObject);
                 if (!references.ContainsKey(key))
                 {
@@ -169,7 +165,8 @@ namespace MysticIsle.DreamEngine.UI
         }
 
         [HorizontalGroup("Core/References/Buttons")]
-        [Button("Clear Null")]
+        [GUIColor(0.4f, 0.6f, 1f)] // 蓝色调按钮
+        [Button("Remove Null References")]
         public void ClearNullReferences()
         {
             // 收集所有值为 null 的键
@@ -181,7 +178,7 @@ namespace MysticIsle.DreamEngine.UI
                     keysToRemove.Add(kvp.Key);
                 }
             }
-            // 从字典中移除收集到的键
+            // 移除收集到的键
             foreach (var key in keysToRemove)
             {
                 references.Remove(key);
@@ -600,7 +597,7 @@ namespace MysticIsle.DreamEngine.UI
         /// <summary>
         /// Called when the widget is clicked.
         /// </summary>
-        /// <param name="eventData">The event data associated with the pointer click event.</param>
+        /// <param name="eventData">The event data associated with the pointer click event。</param>
         public virtual void OnPointerClick(PointerEventData eventData)
         {
             float currentTime = Time.time;
