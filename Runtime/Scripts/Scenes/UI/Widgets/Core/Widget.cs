@@ -134,6 +134,35 @@ namespace MysticIsle.DreamEngine.UI
         [TitleGroup("Core/References", nameof(Widget)), ShowInInspector]
         [CustomValueDrawer(nameof(OnDrawReferenceDragArea))]
         public string dragArea; // Area for dragging references
+
+        // 将按钮横向排列
+        [HorizontalGroup("Core/References/Buttons")]
+        [Button("Clear References")]
+        public void ClearReferences()
+        {
+            references.Clear();
+        }
+
+        [HorizontalGroup("Core/References/Buttons")]
+        [Button("Add All Children References")]
+        public void AddAllChildrenReferences()
+        {
+            // 获取当前物体所有的子 Transform（包括隐藏和孙子节点）
+            Transform[] children = GetComponentsInChildren<Transform>(true);
+            foreach (Transform child in children)
+            {
+                // 排除自己
+                if (child == this.transform)
+                    continue;
+
+                // 使用 child.gameObject 作为引用
+                string key = GenerateKey(child.gameObject);
+                if (!references.ContainsKey(key))
+                {
+                    references.Add(key, child.gameObject);
+                }
+            }
+        }
         #endregion
 
         #region Mono
@@ -176,7 +205,6 @@ namespace MysticIsle.DreamEngine.UI
         /// Adds a reference to the widget.
         /// </summary>
         /// <param name="obj">The object to add as a reference.</param>
-        [Button("Add Transform")]
         public void AddReference(UnityEngine.Object obj)
         {
             if (transform != null)
