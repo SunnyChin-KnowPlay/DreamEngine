@@ -1,5 +1,4 @@
 using MysticIsle.DreamEngine.Phases;
-using MysticIsle.DreamEngine.Scenes;
 using MysticIsle.DreamEngine.UI;
 using System.Collections.Generic;
 using UnityEngine;
@@ -99,11 +98,6 @@ namespace MysticIsle.DreamEngine
         /// 阶段管理器
         /// </summary>
         public PhaseManager PhaseManager { get; protected set; }
-
-        /// <summary>
-        /// 虚拟相机管理器
-        /// </summary>
-        public VirtualCameraManager VirtualCameraManager { get; protected set; }
 
         #endregion
 
