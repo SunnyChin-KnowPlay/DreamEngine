@@ -191,12 +191,67 @@ namespace MysticIsle.DreamEngine.UI
 
         /// <summary>
         /// Generates a unique key for the given object.
+        /// 如果生成的 key 已存在，则尝试将父节点的名称加在前面（格式为 parentName_objectName），
+        /// 如果仍然重复，则再附加数字后缀，直至生成唯一的 key。
         /// </summary>
         /// <param name="obj">The object to generate a key for.</param>
         /// <returns>A unique key for the object.</returns>
         public string GenerateKey(Object obj)
         {
-            return obj.name;
+            string baseKey = obj.name;
+
+            // 如果初始key不存在，直接返回
+            if (!references.ContainsKey(baseKey))
+            {
+                return baseKey;
+            }
+
+            // 尝试获取父节点名称
+            string parentName = string.Empty;
+            if (obj is GameObject go)
+            {
+                if (go.transform.parent != null)
+                {
+                    parentName = go.transform.parent.gameObject.name;
+                }
+            }
+            else if (obj is Component comp)
+            {
+                if (comp.transform.parent != null)
+                {
+                    parentName = comp.transform.parent.gameObject.name;
+                }
+            }
+
+            if (!string.IsNullOrEmpty(parentName))
+            {
+                string newKey = $"{parentName}_{baseKey}";
+                if (!references.ContainsKey(newKey))
+                {
+                    return newKey;
+                }
+                // 如果依然重复，则追加数字后缀
+                int index = 1;
+                string finalKey = newKey;
+                while (references.ContainsKey(finalKey))
+                {
+                    finalKey = $"{newKey}_{index}";
+                    index++;
+                }
+                return finalKey;
+            }
+            else
+            {
+                // 如果没有父节点或父节点名称为空，则采用数字后缀
+                int index = 1;
+                string newKey = baseKey;
+                while (references.ContainsKey(newKey))
+                {
+                    newKey = $"{baseKey}_{index}";
+                    index++;
+                }
+                return newKey;
+            }
         }
         #endregion
 
