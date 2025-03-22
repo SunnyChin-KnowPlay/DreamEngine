@@ -151,8 +151,16 @@ namespace MysticIsle.DreamEngine.UI
             Transform[] children = GetComponentsInChildren<Transform>(true);
             foreach (Transform child in children)
             {
-                // 排除自己以及不在激活状态的对象
-                if (child == this.transform || !child.gameObject.activeInHierarchy)
+                // 排除自己
+                if (child == this.transform)
+                    continue;
+
+                // 排除不在激活状态的对象
+                if (!child.gameObject.activeInHierarchy)
+                    continue;
+
+                // 如果对象在编辑器中隐藏（例如 HideInHierarchy），则跳过
+                if ((child.gameObject.hideFlags & HideFlags.HideInHierarchy) != 0)
                     continue;
 
                 // 使用 child.gameObject 作为引用
