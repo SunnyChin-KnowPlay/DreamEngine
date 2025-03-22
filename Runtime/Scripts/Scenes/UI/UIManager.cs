@@ -150,9 +150,9 @@ namespace MysticIsle.DreamEngine.UI
         /// </summary>
         /// <typeparam name="TPanel">面板类型</typeparam>
         /// <returns>面板对象</returns>
-        public TPanel GetPanel<TPanel>() where TPanel : PanelControl
+        public TPanel GetPanel<TPanel>() where TPanel : Control
         {
-            string path = PanelControl.GetPath<TPanel>();
+            string path = Control.GetPath<TPanel>();
             WidgetPanel panel = GetPanel(path);
             if (panel != null)
             {
@@ -217,9 +217,9 @@ namespace MysticIsle.DreamEngine.UI
         /// </summary>
         /// <typeparam name="TControl">面板控制类型</typeparam>
         /// <returns>面板控制对象</returns>
-        public TControl PushPanel<TControl>() where TControl : PanelControl
+        public TControl PushPanel<TControl>() where TControl : Control
         {
-            string path = PanelControl.GetPath<TControl>();
+            string path = Control.GetPath<TControl>();
             return PushPanel<TControl>(path);
         }
 
@@ -229,7 +229,7 @@ namespace MysticIsle.DreamEngine.UI
         /// <typeparam name="TControl">面板控制类型</typeparam>
         /// <param name="path">面板路径</param>
         /// <returns>面板控制对象</returns>
-        public TControl PushPanel<TControl>(string path) where TControl : PanelControl
+        public TControl PushPanel<TControl>(string path) where TControl : Control
         {
             // 1. 加载面板
             WidgetPanel panelWidget = LoadPanel(path);
@@ -237,8 +237,8 @@ namespace MysticIsle.DreamEngine.UI
                 return null;
 
             TControl control;
-            // 2. 确保面板持有正确的PanelControl
-            if (!panelWidget.TryGetComponent<PanelControl>(out PanelControl existingPanel))
+            // 2. 确保面板持有正确的Control
+            if (!panelWidget.TryGetComponent(out Control existingPanel))
             {
                 control = panelWidget.gameObject.AddComponent<TControl>();
             }
@@ -306,9 +306,9 @@ namespace MysticIsle.DreamEngine.UI
         /// </summary>
         /// <typeparam name="TControl">面板控制类型</typeparam>
         /// <returns>面板控制对象</returns>
-        public TControl ReplacePanel<TControl>() where TControl : PanelControl
+        public TControl ReplacePanel<TControl>() where TControl : Control
         {
-            return ReplacePanel<TControl>(PanelControl.GetPath<TControl>());
+            return ReplacePanel<TControl>(Control.GetPath<TControl>());
         }
 
         /// <summary>
@@ -317,7 +317,7 @@ namespace MysticIsle.DreamEngine.UI
         /// <typeparam name="TControl">面板控制类型</typeparam>
         /// <param name="path">面板路径</param>
         /// <returns>面板控制对象</returns>
-        public TControl ReplacePanel<TControl>(string path) where TControl : PanelControl
+        public TControl ReplacePanel<TControl>(string path) where TControl : Control
         {
             if (panelStack.Count > 0)
             {
@@ -368,9 +368,9 @@ namespace MysticIsle.DreamEngine.UI
         /// </summary>
         /// <typeparam name="TControl">面板控制类型</typeparam>
         /// <returns>面板控制对象</returns>
-        public async Task<TControl> ShowPanelAsync<TControl>() where TControl : PanelControl
+        public async Task<TControl> ShowPanelAsync<TControl>() where TControl : Control
         {
-            string path = PanelControl.GetPath<TControl>();
+            string path = Control.GetPath<TControl>();
             return await ShowPanelAsync<TControl>(path);
         }
 
@@ -380,13 +380,13 @@ namespace MysticIsle.DreamEngine.UI
         /// <typeparam name="TControl">面板控制类型</typeparam>
         /// <param name="path">面板路径</param>
         /// <returns>面板控制对象</returns>
-        public async Task<TControl> ShowPanelAsync<TControl>(string path) where TControl : PanelControl
+        public async Task<TControl> ShowPanelAsync<TControl>(string path) where TControl : Control
         {
             WidgetPanel widgetPanel = await LoadPanelAsync(path);
             if (widgetPanel == null)
                 return null;
 
-            if (!widgetPanel.TryGetComponent<PanelControl>(out PanelControl panel))
+            if (!widgetPanel.TryGetComponent(out Control panel))
             {
                 widgetPanel.gameObject.AddComponent<TControl>();
             }
@@ -411,9 +411,9 @@ namespace MysticIsle.DreamEngine.UI
         /// </summary>
         /// <typeparam name="TControl">面板控制类型</typeparam>
         /// <returns>面板控制对象</returns>
-        public TControl ShowPanel<TControl>() where TControl : PanelControl
+        public TControl ShowPanel<TControl>() where TControl : Control
         {
-            return ShowPanel<TControl>(PanelControl.GetPath<TControl>());
+            return ShowPanel<TControl>(Control.GetPath<TControl>());
         }
 
         /// <summary>
@@ -422,14 +422,14 @@ namespace MysticIsle.DreamEngine.UI
         /// <typeparam name="TControl">面板控制类型</typeparam>
         /// <param name="path">面板路径</param>
         /// <returns>面板控制对象</returns>
-        public TControl ShowPanel<TControl>(string path) where TControl : PanelControl
+        public TControl ShowPanel<TControl>(string path) where TControl : Control
         {
             TControl control = null;
             WidgetPanel panelWidget = LoadPanel(path);
             if (panelWidget == null)
                 return control;
 
-            if (!panelWidget.TryGetComponent<PanelControl>(out PanelControl panel))
+            if (!panelWidget.TryGetComponent<Control>(out Control panel))
             {
                 panelWidget.gameObject.AddComponent<TControl>();
             }

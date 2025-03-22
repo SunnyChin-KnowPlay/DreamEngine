@@ -2,6 +2,7 @@ using Sirenix.OdinInspector;
 using Sirenix.Serialization;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
+using UnityEngine.UI;
 
 namespace MysticIsle.DreamEngine.UI
 {
@@ -16,6 +17,8 @@ namespace MysticIsle.DreamEngine.UI
         Blur = 1 << 1,
     }
 
+    [RequireComponent(typeof(Canvas))]
+    [RequireComponent(typeof(GraphicRaycaster))]
     public partial class WidgetPanel : Widget
     {
         #region Params

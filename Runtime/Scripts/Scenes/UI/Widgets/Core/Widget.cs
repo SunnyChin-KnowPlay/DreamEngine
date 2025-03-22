@@ -151,8 +151,8 @@ namespace MysticIsle.DreamEngine.UI
             Transform[] children = GetComponentsInChildren<Transform>(true);
             foreach (Transform child in children)
             {
-                // 排除自己
-                if (child == this.transform)
+                // 排除自己以及不在激活状态的对象
+                if (child == this.transform || !child.gameObject.activeInHierarchy)
                     continue;
 
                 // 使用 child.gameObject 作为引用
@@ -214,6 +214,38 @@ namespace MysticIsle.DreamEngine.UI
                 {
                     references.Add(key, obj);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Binds a node from the references dictionary to a variable.
+        /// 通过指定的 reference key，尝试从 references 中获取对应的对象，并获取该对象上指定类型的 Component 进行赋值。
+        /// 如果绑定失败，则会输出警告日志。
+        /// </summary>
+        /// <typeparam name="T">要绑定组件的类型。</typeparam>
+        /// <param name="referenceKey">references 字典中的键。</param>
+        /// <param name="component">绑定成功后输出的组件引用。</param>
+        protected virtual void BindReference<T>(string referenceKey, out T component) where T : Component
+        {
+            component = null;
+            if (references.TryGetValue(referenceKey, out UnityEngine.Object obj))
+            {
+                if (obj is GameObject go)
+                {
+                    component = go.GetComponent<T>();
+                }
+                else if (obj is T t)
+                {
+                    component = t;
+                }
+                if (component == null)
+                {
+                    Debug.LogWarning($"绑定失败：从 key '{referenceKey}' 获取的对象上未找到类型 {typeof(T)} 的组件。");
+                }
+            }
+            else
+            {
+                Debug.LogWarning($"绑定失败:references 中不存在 key '{referenceKey}'。");
             }
         }
 
