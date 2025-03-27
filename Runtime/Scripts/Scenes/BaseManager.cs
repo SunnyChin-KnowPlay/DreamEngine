@@ -17,6 +17,11 @@ namespace MysticIsle.DreamEngine
         private static TBaseManager instance;
 
         /// <summary>
+        /// 实例
+        /// </summary>
+        public static TBaseManager Instance => GetInstance();
+
+        /// <summary>
         /// 获取实例
         /// </summary>
         /// <returns>游戏管理器实例</returns>
@@ -48,7 +53,6 @@ namespace MysticIsle.DreamEngine
                 {
                     GameObject go = new(typeof(TBaseManager).Name);
                     instance = go.AddComponent<TBaseManager>();
-                    DontDestroyOnLoad(go);
                 }
             }
         }
