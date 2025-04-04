@@ -5,7 +5,7 @@
 
 namespace MysticIsle.DreamEngine
 {
-    public class Singleton<T> : MonoBehaviour where T : Singleton<T>, new()
+    public class Singleton<T> : MonoBehaviour where T : Singleton<T>
     {
         #region Params
         private const string singletonRootName = "Singletons";
@@ -34,7 +34,12 @@ namespace MysticIsle.DreamEngine
                 {
                     if (editorInstance == null)
                     {
-                        editorInstance = new T(); // Use a regular instance in Editor mode
+                        // 创建一个隐藏的 GameObject，用于保存 Editor 模式下的单例实例
+                        GameObject go = new(typeof(T).Name + "_EditorInstance")
+                        {
+                            hideFlags = HideFlags.HideAndDontSave
+                        };
+                        editorInstance = go.AddComponent<T>();
                     }
                     return editorInstance;
                 }
