@@ -39,17 +39,6 @@ namespace MysticIsle.DreamEngine.UI
             {
                 // 隐藏预制体本身，避免在层级中显示
                 itemPrefab.SetActive(false);
-
-                // 如果预设体下已存在子项（非 itemPrefab 本身），加入对象池
-                for (int i = 0; i < transform.childCount; i++)
-                {
-                    GameObject child = transform.GetChild(i).gameObject;
-                    if (child != itemPrefab)
-                    {
-                        child.SetActive(false);
-                        itemPool.Enqueue(child);
-                    }
-                }
             }
         }
         #endregion
