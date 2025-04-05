@@ -35,7 +35,7 @@ namespace MysticIsle.DreamEngine.UI
         protected override void Awake()
         {
             base.Awake();
-            if (itemPrefab != null)
+            if (itemPrefab != null && itemPrefab.scene.IsValid())
             {
                 // 隐藏预制体本身，避免在层级中显示
                 itemPrefab.SetActive(false);
