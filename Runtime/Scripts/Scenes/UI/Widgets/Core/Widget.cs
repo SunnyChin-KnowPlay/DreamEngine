@@ -141,35 +141,11 @@ namespace MysticIsle.DreamEngine.UI
         }
 
         [HorizontalGroup("Core/References/Buttons")]
-        [GUIColor(0.4f, 0.8f, 0.4f)] // 绿色调按钮
-        [Button("Add All Children References")]
-        public void AddAllChildrenReferences()
+        [GUIColor(0.4f, 0.7f, 1f)] // 淡蓝色按钮
+        [Button("Refresh References")]
+        public void RefreshReferences()
         {
-            // 获取当前物体所有的子 Transform（包括隐藏和孙子节点）
-            Transform[] children = GetComponentsInChildren<Transform>(true);
-            foreach (Transform child in children)
-            {
-                // 排除自己
-                if (child == this.transform)
-                    continue;
-                // 如果对象在编辑器中隐藏（例如通过 HideInHierarchy 隐藏），则跳过
-                if ((child.gameObject.hideFlags & HideFlags.HideInHierarchy) != 0)
-                    continue;
-                // 使用 child.gameObject 作为引用并生成唯一键
-                string key = GenerateKey(child.gameObject);
-                if (!references.ContainsKey(key))
-                {
-                    references.Add(key, child.gameObject);
-                }
-            }
-        }
-
-        [HorizontalGroup("Core/References/Buttons")]
-        [GUIColor(0.4f, 0.6f, 1f)] // 蓝色调按钮
-        [Button("Remove Null References")]
-        public void ClearNullReferences()
-        {
-            // 收集所有值为 null 的键
+            // 移除所有值为 null 的键
             var keysToRemove = new List<string>();
             foreach (var kvp in references)
             {
@@ -178,10 +154,29 @@ namespace MysticIsle.DreamEngine.UI
                     keysToRemove.Add(kvp.Key);
                 }
             }
-            // 移除收集到的键
             foreach (var key in keysToRemove)
             {
                 references.Remove(key);
+            }
+
+            // 添加所有子节点引用
+            Transform[] children = GetComponentsInChildren<Transform>(true);
+            foreach (Transform child in children)
+            {
+                // 排除自己
+                if (child == this.transform)
+                    continue;
+
+                // 如果对象在编辑器中隐藏（例如通过 HideInHierarchy 隐藏），则跳过
+                if ((child.gameObject.hideFlags & HideFlags.HideInHierarchy) != 0)
+                    continue;
+
+                // 使用 child.gameObject 作为引用并生成唯一键
+                string key = GenerateKey(child.gameObject);
+                if (!references.ContainsKey(key))
+                {
+                    references.Add(key, child.gameObject);
+                }
             }
         }
         #endregion
