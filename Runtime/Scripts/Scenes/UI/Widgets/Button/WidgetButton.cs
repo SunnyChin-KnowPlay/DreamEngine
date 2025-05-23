@@ -21,7 +21,7 @@ namespace MysticIsle.DreamEngine.UI
         /// <summary>
         /// 按钮点击事件
         /// </summary>
-        public Widget.OnWidgetHandle onClick;
+        public Widget.WidgetEvent onClick;
 
         /// <summary>
         /// 按钮图标名称
@@ -34,7 +34,7 @@ namespace MysticIsle.DreamEngine.UI
         /// <param name="text">按钮文本</param>
         /// <param name="onClick">按钮点击事件</param>
         /// <param name="spriteName">按钮图标名称</param>
-        public ButtonInfo(string text, Widget.OnWidgetHandle onClick, string spriteName)
+        public ButtonInfo(string text, Widget.WidgetEvent onClick, string spriteName)
         {
             this.text = text;
             this.onClick = onClick;

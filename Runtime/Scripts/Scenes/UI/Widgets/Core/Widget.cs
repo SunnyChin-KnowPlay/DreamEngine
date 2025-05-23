@@ -4,10 +4,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using Cysharp.Threading.Tasks;
+using UnityEngine.Events;
 
 namespace MysticIsle.DreamEngine.UI
 {
-
     public partial class Widget : SerializedMonoBehaviour,
         IPointerEnterHandler,
         IPointerExitHandler,
@@ -19,38 +19,41 @@ namespace MysticIsle.DreamEngine.UI
         IPointerDownHandler,
         IPointerUpHandler
     {
+        // 封装一个 WidgetEvent，继承自 UnityEvent<Widget>
+        [System.Serializable]
+        public class WidgetEvent : UnityEvent<Widget> { }
+
+        // 封装一个 WidgetDropEvent，继承自 UnityEvent<Widget, Widget>
+        [System.Serializable]
+        public class WidgetDropEvent : UnityEvent<Widget, Widget> { }
+
         #region Event
-        [FoldoutGroup("Events"), ReadOnly, ShowInInspector]
-        public delegate void OnWidgetHandle(Widget widget); // Delegate for widget events
+        [FoldoutGroup("Events"), ShowInInspector]
+        public WidgetEvent OnClick = new(); // Called on single click
 
         [FoldoutGroup("Events"), ShowInInspector]
-        public event OnWidgetHandle OnClick; // Event triggered on single click
+        public WidgetEvent OnDoubleClick = new(); // Called on double click
 
         [FoldoutGroup("Events"), ShowInInspector]
-        public event OnWidgetHandle OnDoubleClick; // Event triggered on double click
+        public WidgetEvent OnFocusIn = new(); // Called when focus is gained
 
         [FoldoutGroup("Events"), ShowInInspector]
-        public event OnWidgetHandle OnFocusIn; // Event triggered when focus is gained
+        public WidgetEvent OnFocusOut = new(); // Called when focus is lost
 
         [FoldoutGroup("Events"), ShowInInspector]
-        public event OnWidgetHandle OnFocusOut; // Event triggered when focus is lost
+        public WidgetEvent OnSelected = new(); // Called when selection is gained
 
         [FoldoutGroup("Events"), ShowInInspector]
-        public event OnWidgetHandle OnSelected; // Event triggered when selection is gained
+        public WidgetEvent OnDeselected = new(); // Called when selection is lost
 
         [FoldoutGroup("Events"), ShowInInspector]
-        public event OnWidgetHandle OnDeselected; // Event triggered when selection is lost
-
-        public delegate void OnWidgetDroppedHandle(Widget widget, Widget targetWidget); // Delegate for drop events
+        public WidgetDropEvent OnDropped = new(); // Called when widget is dropped
 
         [FoldoutGroup("Events"), ShowInInspector]
-        public event OnWidgetDroppedHandle OnDropped; // Event triggered when widget is dropped
+        public WidgetEvent OnPointerDownEvent = new(); // Called on pointer down
 
         [FoldoutGroup("Events"), ShowInInspector]
-        public event OnWidgetHandle OnPointerDownEvent; // Event triggered on pointer down
-
-        [FoldoutGroup("Events"), ShowInInspector]
-        public event OnWidgetHandle OnPointerUpEvent; // Event triggered on pointer up
+        public WidgetEvent OnPointerUpEvent = new(); // Called on pointer up
         #endregion
 
         #region Params
@@ -781,4 +784,5 @@ namespace MysticIsle.DreamEngine.UI
 
         #endregion
     }
+
 }
