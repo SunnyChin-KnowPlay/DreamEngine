@@ -132,6 +132,9 @@ namespace MysticIsle.DreamEngine.UI
         private void SetupPanel(WidgetPanel go)
         {
             go.transform.SetParent(this.transform, false);
+            Control control = go.GetComponent<Control>();
+            if (null != control)
+                control.SetDirty();
 
             // 安全地处理面板层级：使用Canvas的sortingOrder而不是简单的transform层级
             if (go.TryGetComponent<Canvas>(out var panelCanvas))
