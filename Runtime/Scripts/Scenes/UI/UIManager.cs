@@ -126,12 +126,41 @@ namespace MysticIsle.DreamEngine.UI
         #region 面板管理 - 基础操作
 
         /// <summary>
-        /// 设置面板归属当前UIManager
+        /// 设置面板归属当前UIManager，并确保显示在最前面
         /// </summary>
         /// <param name="go">面板对象</param>
         private void SetupPanel(WidgetPanel go)
         {
             go.transform.SetParent(this.transform, false);
+
+            // 安全地处理面板层级：使用Canvas的sortingOrder而不是简单的transform层级
+            if (go.TryGetComponent<Canvas>(out var panelCanvas))
+            {
+                // 确保面板Canvas启用Override Sorting
+                panelCanvas.overrideSorting = true;
+
+                // 找到当前最高的sortingOrder
+                int maxSortingOrder = 0;
+                foreach (var panel in panels.Values)
+                {
+                    if (panel != null && panel != go)
+                    {
+                        Canvas canvas = panel.GetComponent<Canvas>();
+                        if (canvas != null && canvas.overrideSorting)
+                        {
+                            maxSortingOrder = Mathf.Max(maxSortingOrder, canvas.sortingOrder);
+                        }
+                    }
+                }
+
+                // 设置当前面板为最高层级
+                panelCanvas.sortingOrder = maxSortingOrder + 1;
+            }
+            else
+            {
+                // 如果没有Canvas组件，回退到transform层级
+                go.transform.SetAsLastSibling();
+            }
         }
 
         /// <summary>
