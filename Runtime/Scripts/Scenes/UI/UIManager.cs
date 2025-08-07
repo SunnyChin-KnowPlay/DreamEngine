@@ -487,6 +487,20 @@ namespace MysticIsle.DreamEngine.UI
             panel?.Hide();
         }
 
+        /// <summary>
+        /// 隐藏指定面板（泛型）
+        /// </summary>
+        /// <typeparam name="TControl">面板控制类型</typeparam>
+        public void HidePanel<TControl>() where TControl : Control
+        {
+            var panelControl = GetPanel<TControl>();
+            if (panelControl != null)
+            {
+                var panel = panelControl.GetComponent<WidgetPanel>();
+                panel.Hide();
+            }
+        }
+
         #endregion
     }
 }
