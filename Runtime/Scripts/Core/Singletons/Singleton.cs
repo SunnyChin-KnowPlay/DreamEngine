@@ -24,17 +24,19 @@ namespace MysticIsle.DreamEngine
             {
                 if (Application.isPlaying)
                 {
-                    if (!isQuitting && instance == null)
-                    {
-                        CreateOrFindInstance();
-                    }
-                    return instance;
+                    if (isQuitting)
+                        return null;
+                    // Only create or find, do not assign or persist
+                    T found = FindAnyObjectByType<T>();
+                    if (found != null)
+                        return found;
+                    GameObject go = new(typeof(T).Name);
+                    return go.AddComponent<T>();
                 }
                 else
                 {
                     if (editorInstance == null)
                     {
-                        // 创建一个隐藏的 GameObject，用于保存 Editor 模式下的单例实例
                         GameObject go = new(typeof(T).Name + "_EditorInstance")
                         {
                             hideFlags = HideFlags.HideAndDontSave
@@ -46,27 +48,7 @@ namespace MysticIsle.DreamEngine
             }
         }
 
-        private static void CreateOrFindInstance()
-        {
-            if (instance == null)
-            {
-                // Use FindAnyObjectByType to find an existing instance if any
-                instance = FindAnyObjectByType<T>();
-
-                if (instance == null)
-                {
-                    GameObject go = new(typeof(T).Name);
-                    instance = go.AddComponent<T>();
-                    // Ensure that the singleton root exists and set parent to it
-                    GameObject rootObj = GetOrCreateRoot();
-                    if (rootObj != null)
-                    {
-                        instance.transform.SetParent(rootObj.transform);
-                    }
-                    DontDestroyOnLoad(go);
-                }
-            }
-        }
+        // Remove CreateOrFindInstance, logic now only in Awake
 
         private static GameObject GetOrCreateRoot()
         {
@@ -87,7 +69,6 @@ namespace MysticIsle.DreamEngine
                 {
                     // If it's in play mode, destroy the instance's game object
                     Destroy(instance.gameObject);
-                    instance = null;
                 }
             }
             else
@@ -106,21 +87,23 @@ namespace MysticIsle.DreamEngine
                 isQuitting = false;
                 if (instance == null)
                 {
+                    // First instance: adopt and persist
                     instance = this as T;
-                    DontDestroyOnLoad(gameObject);
-
-                    string singletonName = $"Singleton of {typeof(T).Name}";
-                    gameObject.name = singletonName;
-
-                    // Set parent to Singleton root (if applicable)
+                    // Standardize naming
+                    string expectedName = $"Singleton of {typeof(T).Name}";
+                    if (gameObject.name != expectedName)
+                        gameObject.name = expectedName;
+                    // Parent under Singleton root
                     GameObject rootObj = GetOrCreateRoot();
-                    if (rootObj != null)
-                    {
-                        instance.transform.SetParent(rootObj.transform);
-                    }
+                    if (rootObj != null && transform.parent != rootObj.transform)
+                        transform.SetParent(rootObj.transform);
+                    // Always persist
+                    if (gameObject.scene.IsValid())
+                        DontDestroyOnLoad(gameObject);
                 }
                 else if (instance != this)
                 {
+                    // Destroy duplicate
                     DestroyImmediate(gameObject);
                 }
             }
