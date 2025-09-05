@@ -28,22 +28,31 @@ namespace MysticIsle.DreamEngine.UI
         public class WidgetDropEvent : UnityEvent<Widget, Widget> { }
 
         #region Event
+        [HideInInspector]
         public WidgetEvent OnClick = new(); // Called on single click
 
+        [HideInInspector]
         public WidgetEvent OnDoubleClick = new(); // Called on double click
 
+        [HideInInspector]
         public WidgetEvent OnFocusIn = new(); // Called when focus is gained
 
+        [HideInInspector]
         public WidgetEvent OnFocusOut = new(); // Called when focus is lost
 
+        [HideInInspector]
         public WidgetEvent OnSelected = new(); // Called when selection is gained
 
+        [HideInInspector]
         public WidgetEvent OnDeselected = new(); // Called when selection is lost
 
+        [HideInInspector]
         public WidgetDropEvent OnDropped = new(); // Called when widget is dropped
 
+        [HideInInspector]
         public WidgetEvent OnPointerDownEvent = new(); // Called on pointer down
 
+        [HideInInspector]
         public WidgetEvent OnPointerUpEvent = new(); // Called on pointer up
         #endregion
 
@@ -53,11 +62,11 @@ namespace MysticIsle.DreamEngine.UI
         /// </summary>
         public bool IsActive => null != this.gameObject && this.gameObject.activeSelf;
 
-        [TitleGroup("Core", "Widget", Order = 0), ShowInInspector]
+        [TitleGroup("Core", nameof(Widget), Order = 0), ShowInInspector]
         public RectTransform RectTransform => rectTransform; // RectTransform of the widget
         protected RectTransform rectTransform;
 
-        [TitleGroup("Core", "Widget"), ShowInInspector, ReadOnly]
+        [TitleGroup("Core", nameof(Widget)), ShowInInspector, ReadOnly]
         public bool IsFocused
         {
             get => isFocused;
@@ -87,7 +96,7 @@ namespace MysticIsle.DreamEngine.UI
         }
         private bool isFocused = false; // Indicates if the widget is focused
 
-        [TitleGroup("Core", "Widget"), ShowInInspector]
+        [TitleGroup("Core", nameof(Widget)), ShowInInspector]
         public virtual bool IsSelected
         {
             get => isSelected;
