@@ -436,7 +436,7 @@ namespace MysticIsle.DreamEngine.UI
 
         #endregion
 
-        #region 面板管理 - 同步显示操作
+        #region 面板管理
 
         /// <summary>
         /// 同步显示面板（泛型）
@@ -501,6 +501,18 @@ namespace MysticIsle.DreamEngine.UI
             }
         }
 
+        #endregion
+
+        #region Widget管理
+        public virtual void OnWidgetFocusIn(Widget widget)
+        {
+            // 处理Widget获得焦点的逻辑
+        }
+
+        public virtual void OnWidgetFocusOut(Widget widget)
+        {
+            // 处理Widget失去焦点的逻辑
+        }
         #endregion
     }
 }

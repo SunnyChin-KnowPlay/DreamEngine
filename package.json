@@ -1,7 +1,7 @@
 {
   "name": "com.mysticisle.dreamengine",
   "displayName": "DreamEngine",
-  "version": "0.0.52",
+  "version": "0.0.53",
   "unity": "2021.3",
   "description": "A lightweight game framework for Unity, providing core systems like asset management, UI controls, and async task utilities.",
   "dependencies": {

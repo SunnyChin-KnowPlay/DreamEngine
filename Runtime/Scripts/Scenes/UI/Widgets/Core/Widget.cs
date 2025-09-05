@@ -28,31 +28,22 @@ namespace MysticIsle.DreamEngine.UI
         public class WidgetDropEvent : UnityEvent<Widget, Widget> { }
 
         #region Event
-        [FoldoutGroup("Events"), ShowInInspector]
         public WidgetEvent OnClick = new(); // Called on single click
 
-        [FoldoutGroup("Events"), ShowInInspector]
         public WidgetEvent OnDoubleClick = new(); // Called on double click
 
-        [FoldoutGroup("Events"), ShowInInspector]
         public WidgetEvent OnFocusIn = new(); // Called when focus is gained
 
-        [FoldoutGroup("Events"), ShowInInspector]
         public WidgetEvent OnFocusOut = new(); // Called when focus is lost
 
-        [FoldoutGroup("Events"), ShowInInspector]
         public WidgetEvent OnSelected = new(); // Called when selection is gained
 
-        [FoldoutGroup("Events"), ShowInInspector]
         public WidgetEvent OnDeselected = new(); // Called when selection is lost
 
-        [FoldoutGroup("Events"), ShowInInspector]
         public WidgetDropEvent OnDropped = new(); // Called when widget is dropped
 
-        [FoldoutGroup("Events"), ShowInInspector]
         public WidgetEvent OnPointerDownEvent = new(); // Called on pointer down
 
-        [FoldoutGroup("Events"), ShowInInspector]
         public WidgetEvent OnPointerUpEvent = new(); // Called on pointer up
         #endregion
 
@@ -78,10 +69,18 @@ namespace MysticIsle.DreamEngine.UI
                     if (isFocused)
                     {
                         this.OnFocusIn?.Invoke(this);
+                        if (null != UIManager)
+                        {
+                            UIManager.OnWidgetFocusIn(this);
+                        }
                     }
                     else
                     {
                         this.OnFocusOut?.Invoke(this);
+                        if (null != UIManager)
+                        {
+                            UIManager.OnWidgetFocusOut(this);
+                        }
                     }
                 }
             }
@@ -109,6 +108,11 @@ namespace MysticIsle.DreamEngine.UI
             }
         }
         protected bool isSelected = false; // Indicates if the widget is selected
+
+        /// <summary>
+        /// Tooltip key for the widget.
+        /// </summary>
+        public string TooltipKey;
 
         protected float lastClickTime = 0f; // Time of the last click
         protected const float doubleClickThreshold = 0.5f; // Time interval threshold for double click
