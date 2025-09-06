@@ -19,6 +19,8 @@ namespace MysticIsle.DreamEngine.UI
         IPointerDownHandler,
         IPointerUpHandler
     {
+        // Cache to avoid GC allocs when walking CanvasGroup hierarchy
+        private static readonly List<CanvasGroup> s_CanvasGroupCache = new();
         // 封装一个 WidgetEvent，继承自 UnityEvent<Widget>
         [System.Serializable]
         public class WidgetEvent : UnityEvent<Widget> { }
@@ -593,6 +595,8 @@ namespace MysticIsle.DreamEngine.UI
         /// <param name="eventData">The event data associated with the pointer enter event.</param>
         public virtual void OnPointerEnter(PointerEventData eventData)
         {
+            // Follow standard Button rule: only when interactable and raycastable
+            if (!IsEligibleForPointer(false, eventData)) return;
             this.IsFocused = true;
         }
 
@@ -602,6 +606,7 @@ namespace MysticIsle.DreamEngine.UI
         /// <param name="eventData">The event data associated with the pointer exit event.</param>
         public virtual void OnPointerExit(PointerEventData eventData)
         {
+            // Clear focus on exit (pointer entered only if raycastable in most cases)
             this.IsFocused = false;
         }
 
@@ -611,6 +616,8 @@ namespace MysticIsle.DreamEngine.UI
         /// <param name="eventData">The event data associated with the pointer click event。</param>
         public virtual void OnPointerClick(PointerEventData eventData)
         {
+            // Only handle left clicks and when interactable/raycastable (Button-like)
+            if (!IsEligibleForPointer(true, eventData)) return;
             float currentTime = Time.time;
             if (currentTime - lastClickTime < doubleClickThreshold)
             {
@@ -629,6 +636,8 @@ namespace MysticIsle.DreamEngine.UI
         /// <param name="eventData">The event data associated with the pointer down event.</param>
         public virtual void OnPointerDown(PointerEventData eventData)
         {
+            // Only handle left button and when interactable/raycastable
+            if (!IsEligibleForPointer(true, eventData)) return;
             OnPointerDownEvent?.Invoke(this);
         }
 
@@ -638,7 +647,67 @@ namespace MysticIsle.DreamEngine.UI
         /// <param name="eventData">The event data associated with the pointer up event.</param>
         public virtual void OnPointerUp(PointerEventData eventData)
         {
+            // Only handle left button and when interactable/raycastable
+            if (!IsEligibleForPointer(true, eventData)) return;
             OnPointerUpEvent?.Invoke(this);
+        }
+
+        /// <summary>
+        /// Button-like eligibility for handling pointer events.
+        /// - Must be active/enabled and in hierarchy
+        /// - Must have a self Graphic with raycastTarget=true
+        /// - Must be allowed by CanvasGroup hierarchy
+        /// - If requireLeftButton, event must be left mouse button
+        /// </summary>
+        protected bool IsEligibleForPointer(bool requireLeftButton, PointerEventData eventData)
+        {
+            if (!isActiveAndEnabled || !gameObject.activeInHierarchy)
+                return false;
+
+            if (requireLeftButton && (eventData == null || eventData.button != PointerEventData.InputButton.Left))
+                return false;
+
+            if (!HasRaycastableGraphic())
+                return false;
+
+            if (!CanvasGroupsAllowInteraction())
+                return false;
+
+            return true;
+        }
+
+        protected bool HasRaycastableGraphic()
+        {
+            return TryGetComponent<UnityEngine.UI.Graphic>(out var g) && g != null && g.enabled && g.raycastTarget;
+        }
+
+        protected bool CanvasGroupsAllowInteraction()
+        {
+            s_CanvasGroupCache.Clear();
+            GetComponentsInParent(true, s_CanvasGroupCache);
+
+            bool allowed = true;
+            for (int i = 0; i < s_CanvasGroupCache.Count; i++)
+            {
+                var cg = s_CanvasGroupCache[i];
+                if (cg == null || !cg.enabled)
+                    continue;
+
+                if (cg.ignoreParentGroups)
+                {
+                    allowed = cg.interactable && cg.blocksRaycasts;
+                    break;
+                }
+
+                if (!cg.interactable || !cg.blocksRaycasts)
+                {
+                    allowed = false;
+                    break;
+                }
+            }
+
+            s_CanvasGroupCache.Clear();
+            return allowed;
         }
         #endregion
 
