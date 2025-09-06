@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using Cysharp.Threading.Tasks;
 using UnityEngine.Events;
+using UnityEngine.Pool;
 
 namespace MysticIsle.DreamEngine.UI
 {
@@ -124,9 +125,6 @@ namespace MysticIsle.DreamEngine.UI
         /// Tooltip key for the widget.
         /// </summary>
         public string TooltipKey;
-
-        protected float lastClickTime = 0f; // Time of the last click
-        protected const float doubleClickThreshold = 0.5f; // Time interval threshold for double click
 
         public bool Draggable { get; set; } = false; // Indicates if the widget is draggable
 
@@ -595,8 +593,6 @@ namespace MysticIsle.DreamEngine.UI
         /// <param name="eventData">The event data associated with the pointer enter event.</param>
         public virtual void OnPointerEnter(PointerEventData eventData)
         {
-            // Follow standard Button rule: only when interactable and raycastable
-            if (!IsEligibleForPointer(false, eventData)) return;
             this.IsFocused = true;
         }
 
@@ -606,7 +602,6 @@ namespace MysticIsle.DreamEngine.UI
         /// <param name="eventData">The event data associated with the pointer exit event.</param>
         public virtual void OnPointerExit(PointerEventData eventData)
         {
-            // Clear focus on exit (pointer entered only if raycastable in most cases)
             this.IsFocused = false;
         }
 
@@ -618,8 +613,10 @@ namespace MysticIsle.DreamEngine.UI
         {
             // Only handle left clicks and when interactable/raycastable (Button-like)
             if (!IsEligibleForPointer(true, eventData)) return;
-            float currentTime = Time.time;
-            if (currentTime - lastClickTime < doubleClickThreshold)
+
+            // Prefer Unity's built-in clickCount when available
+            int count = eventData != null ? eventData.clickCount : 1;
+            if (count >= 2)
             {
                 InvokeOnDoubleClick(this);
             }
@@ -627,7 +624,6 @@ namespace MysticIsle.DreamEngine.UI
             {
                 InvokeOnClick(this);
             }
-            lastClickTime = currentTime;
         }
 
         /// <summary>
@@ -652,62 +648,32 @@ namespace MysticIsle.DreamEngine.UI
             OnPointerUpEvent?.Invoke(this);
         }
 
-        /// <summary>
-        /// Button-like eligibility for handling pointer events.
-        /// - Must be active/enabled and in hierarchy
-        /// - Must have a self Graphic with raycastTarget=true
-        /// - Must be allowed by CanvasGroup hierarchy
-        /// - If requireLeftButton, event must be left mouse button
-        /// </summary>
         protected bool IsEligibleForPointer(bool requireLeftButton, PointerEventData eventData)
         {
-            if (!isActiveAndEnabled || !gameObject.activeInHierarchy)
-                return false;
-
+            // ① 左键（或你自己的输入过滤）
             if (requireLeftButton && (eventData == null || eventData.button != PointerEventData.InputButton.Left))
                 return false;
 
-            if (!HasRaycastableGraphic())
-                return false;
-
-            if (!CanvasGroupsAllowInteraction())
+            // ② 像 Button 一样尊重父链 CanvasGroup 的 interactable
+            if (!CanvasGroupsAllowInteraction(this.transform))
                 return false;
 
             return true;
         }
 
-        protected bool HasRaycastableGraphic()
+        static bool CanvasGroupsAllowInteraction(Transform t)
         {
-            return TryGetComponent<UnityEngine.UI.Graphic>(out var g) && g != null && g.enabled && g.raycastTarget;
-        }
-
-        protected bool CanvasGroupsAllowInteraction()
-        {
-            s_CanvasGroupCache.Clear();
-            GetComponentsInParent(true, s_CanvasGroupCache);
-
-            bool allowed = true;
-            for (int i = 0; i < s_CanvasGroupCache.Count; i++)
+            // 与 UnityEngine.UI.Selectable 的逻辑一致：任一父 CanvasGroup
+            // 在 ignoreParentGroups=false 且 interactable=false 时，视为不允许交互
+            var groups = ListPool<CanvasGroup>.Get();   // 或直接 GetComponentsInParent<CanvasGroup>(true, groups)
+            t.GetComponentsInParent(true, groups);
+            bool allow = true;
+            foreach (var g in groups)
             {
-                var cg = s_CanvasGroupCache[i];
-                if (cg == null || !cg.enabled)
-                    continue;
-
-                if (cg.ignoreParentGroups)
-                {
-                    allowed = cg.interactable && cg.blocksRaycasts;
-                    break;
-                }
-
-                if (!cg.interactable || !cg.blocksRaycasts)
-                {
-                    allowed = false;
-                    break;
-                }
+                if (!g.interactable && !g.ignoreParentGroups) { allow = false; break; }
             }
-
-            s_CanvasGroupCache.Clear();
-            return allowed;
+            ListPool<CanvasGroup>.Release(groups);
+            return allow;
         }
         #endregion
 
@@ -718,6 +684,7 @@ namespace MysticIsle.DreamEngine.UI
         /// <param name="eventData">The event data associated with the drag event.</param>
         public virtual void OnBeginDrag(PointerEventData eventData)
         {
+
             if (!Draggable) return;
 
             canvasGroup.alpha = 0.6f; // Make the widget semi-transparent
