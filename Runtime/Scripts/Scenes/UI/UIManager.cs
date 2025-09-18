@@ -15,10 +15,24 @@ namespace MysticIsle.DreamEngine.UI
         #region 字段与属性
 
         /// <summary>
-        /// 面板栈：管理当前显示的面板顺序
+        /// 面板展示模式
+        /// </summary>
+        private enum PanelShowMode { Push, Replace }
+
+        /// <summary>
+        /// 栈项：记录面板与展示模式
+        /// </summary>
+        private struct PanelEntry
+        {
+            public WidgetPanel Panel;
+            public PanelShowMode Mode;
+        }
+
+        /// <summary>
+        /// 面板栈：管理当前显示的面板顺序（包含展示模式）
         /// </summary>
         [ShowInInspector]
-        private readonly Stack<WidgetPanel> panelStack = new();
+        private readonly Stack<PanelEntry> panelStack = new();
 
         /// <summary>
         /// 界面词典：每个面板路径对应唯一的面板
@@ -95,14 +109,15 @@ namespace MysticIsle.DreamEngine.UI
         {
             if (panelStack.Count > 0)
             {
-                var topPanel = panelStack.Peek();
+                var top = panelStack.Peek();
                 // 如果栈顶面板已关闭，则弹出；若栈不为空则显示新的栈顶
-                if (!topPanel.gameObject.activeSelf)
+                if (top.Panel == null || !top.Panel.gameObject.activeSelf)
                 {
                     panelStack.Pop();
                     if (panelStack.Count > 0)
                     {
-                        panelStack.Peek().Show();
+                        var newTop = panelStack.Peek();
+                        newTop.Panel?.Show();
                     }
                 }
             }
@@ -245,31 +260,40 @@ namespace MysticIsle.DreamEngine.UI
         #region 面板管理 - 栈操作
 
         /// <summary>
-        /// 推入面板：同步加载并显示，管理面板栈逻辑
+        /// 推入面板：同步加载并显示，管理面板栈逻辑（记录为 Push）
         /// </summary>
         /// <typeparam name="TControl">面板控制类型</typeparam>
         /// <returns>面板控制对象</returns>
         public TControl PushPanel<TControl>() where TControl : Control
         {
             string path = Control.GetPath<TControl>();
-            return PushPanel<TControl>(path);
+            return PushPanelInternal<TControl>(path, PanelShowMode.Push);
         }
 
         /// <summary>
-        /// 推入面板：带自定义面板路径
+        /// 推入面板：带自定义面板路径（记录为 Push）
         /// </summary>
         /// <typeparam name="TControl">面板控制类型</typeparam>
         /// <param name="path">面板路径</param>
         /// <returns>面板控制对象</returns>
         public TControl PushPanel<TControl>(string path) where TControl : Control
         {
+            return PushPanelInternal<TControl>(path, PanelShowMode.Push);
+        }
+
+        /// <summary>
+        /// 统一的推入/替换逻辑：根据 mode 记录展示方式
+        /// 规则：当有新面板进来（Push/Replace 都一样），若栈顶模式为 Replace，则先弹出栈顶，再压入新面板。
+        /// </summary>
+        private TControl PushPanelInternal<TControl>(string path, PanelShowMode mode) where TControl : Control
+        {
             // 1. 加载面板
             WidgetPanel panelWidget = LoadPanel(path);
             if (panelWidget == null)
                 return null;
 
-            TControl control;
             // 2. 确保面板持有正确的Control
+            TControl control;
             if (!panelWidget.TryGetComponent(out Control existingPanel))
             {
                 control = panelWidget.gameObject.AddComponent<TControl>();
@@ -287,31 +311,57 @@ namespace MysticIsle.DreamEngine.UI
                 }
             }
 
-            // 3. 设置面板归属
+            // 3. 设置面板归属与排序
             SetupPanel(panelWidget);
 
-            // 4. 面板栈逻辑：如果面板已存在栈中则回退至该面板，否则隐藏当前并新推入
-            if (panelStack.Contains(panelWidget))
+            // 4. 面板栈逻辑
+            // 4.1 新面板进来前，若栈顶是 Replace，则先弹出栈顶
+            if (panelStack.Count > 0 && panelStack.Peek().Mode == PanelShowMode.Replace)
             {
-                while (panelStack.Count > 0 && panelStack.Peek() != panelWidget)
+                var popped = panelStack.Pop();
+                popped.Panel?.Hide();
+            }
+
+            // 4.2 如果该面板已在栈中：弹出至该面板，并更新其展示模式
+            bool existsInStack = false;
+            foreach (var entry in panelStack)
+            {
+                if (entry.Panel == panelWidget)
                 {
-                    var topPanel = panelStack.Pop();
-                    topPanel.Hide();
+                    existsInStack = true;
+                    break;
                 }
-                if (panelStack.Count > 0 && panelStack.Peek() == panelWidget)
+            }
+
+            if (existsInStack)
+            {
+                // 弹出直至目标面板在栈顶
+                while (panelStack.Count > 0 && panelStack.Peek().Panel != panelWidget)
                 {
+                    var top = panelStack.Pop();
+                    top.Panel?.Hide();
+                }
+
+                if (panelStack.Count > 0 && panelStack.Peek().Panel == panelWidget)
+                {
+                    // 更新该面板的展示模式为本次操作的 mode
+                    var target = panelStack.Pop();
+                    target.Mode = mode;
+                    panelStack.Push(target);
                     panelWidget.Show();
                 }
             }
             else
             {
+                // 若是新面板，先隐藏当前栈顶（若有），再压入
                 if (panelStack.Count > 0)
                 {
-                    panelStack.Peek().Hide();
+                    panelStack.Peek().Panel?.Hide();
                 }
-                panelStack.Push(panelWidget);
+                panelStack.Push(new PanelEntry { Panel = panelWidget, Mode = mode });
                 panelWidget.Show();
             }
+
             return control;
         }
 
@@ -327,10 +377,11 @@ namespace MysticIsle.DreamEngine.UI
             }
             while (panelStack.Count > 1)
             {
-                var panel = panelStack.Pop();
-                panel?.Hide();
+                var entry = panelStack.Pop();
+                entry.Panel?.Hide();
             }
-            panelStack.Peek()?.Show();
+            var top = panelStack.Peek();
+            top.Panel?.Show();
         }
 
         /// <summary>
@@ -351,12 +402,8 @@ namespace MysticIsle.DreamEngine.UI
         /// <returns>面板控制对象</returns>
         public TControl ReplacePanel<TControl>(string path) where TControl : Control
         {
-            if (panelStack.Count > 0)
-            {
-                WidgetPanel topPanel = panelStack.Pop();
-                GameObject.Destroy(topPanel.gameObject);
-            }
-            return PushPanel<TControl>(path);
+            // 新逻辑：Replace 仅标记新面板为 Replace，不强制移除当前栈顶（除非栈顶本身就是 Replace）
+            return PushPanelInternal<TControl>(path, PanelShowMode.Replace);
         }
 
         /// <summary>
@@ -366,8 +413,8 @@ namespace MysticIsle.DreamEngine.UI
         {
             while (panelStack.Count > 0)
             {
-                WidgetPanel topPanel = panelStack.Pop();
-                topPanel?.Hide();
+                var top = panelStack.Pop();
+                top.Panel?.Hide();
             }
         }
 
