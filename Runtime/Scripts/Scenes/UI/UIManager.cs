@@ -191,6 +191,11 @@ namespace MysticIsle.DreamEngine.UI
                 ctrl = existingPanel as TControl;
             }
 
+            var type = typeof(TControl);
+            var attr = (PanelStackModeAttribute)System.Attribute.GetCustomAttribute(type, typeof(PanelStackModeAttribute));
+            var mode = attr != null ? attr.Mode : PanelStackMode.Push;
+            go.StackMode = mode;
+
             // 确保正确的 Control 后再标记脏
             ctrl?.SetDirty();
             return ctrl;
@@ -280,14 +285,12 @@ namespace MysticIsle.DreamEngine.UI
             if (panelWidget == null)
                 return null;
 
-            var mode = panelWidget.StackMode;
-
             // Push/Replace：参与栈
             // 先确保归属与 Control
             TControl control = SetupPanel<TControl>(panelWidget);
 
             // Standalone：独立显示，不参与栈
-            if (mode == PanelStackMode.Standalone)
+            if (panelWidget.StackMode == PanelStackMode.Standalone)
             {
                 panelWidget.Show();
                 return control;

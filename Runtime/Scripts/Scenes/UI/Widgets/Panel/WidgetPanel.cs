@@ -67,18 +67,8 @@ namespace MysticIsle.DreamEngine.UI
         [FoldoutGroup("Panel/Animation Settings"), EnumToggleButtons, PropertyOrder(0)]
         public EPanelSwitchAnimationFunction animationFunction;
 
-        /// <summary>
-        /// 当前面板的栈行为模式（来自类上的 PanelStackModeAttribute，若未标注则默认 Push）
-        /// </summary>
-        public PanelStackMode StackMode
-        {
-            get
-            {
-                var type = typeof(Control);
-                var attr = (PanelStackModeAttribute)System.Attribute.GetCustomAttribute(type, typeof(PanelStackModeAttribute));
-                return attr != null ? attr.Mode : PanelStackMode.Push;
-            }
-        }
+        [TitleGroup("Panel", "Widget"), ShowInInspector, ReadOnly, PropertyOrder(1)]
+        public PanelStackMode StackMode { get; set; } = PanelStackMode.Push;
         #endregion
 
         #region Mono
