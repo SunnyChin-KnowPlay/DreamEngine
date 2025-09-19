@@ -193,7 +193,7 @@ namespace MysticIsle.DreamEngine.UI
 
             var type = typeof(TControl);
             var attr = (PanelStackModeAttribute)System.Attribute.GetCustomAttribute(type, typeof(PanelStackModeAttribute));
-            var mode = attr != null ? attr.Mode : PanelStackMode.Push;
+            var mode = attr != null ? attr.Mode : PanelStackMode.Standalone;
             go.StackMode = mode;
 
             // 确保正确的 Control 后再标记脏

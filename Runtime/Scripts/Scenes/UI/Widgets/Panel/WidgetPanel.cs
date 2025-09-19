@@ -68,7 +68,7 @@ namespace MysticIsle.DreamEngine.UI
         public EPanelSwitchAnimationFunction animationFunction;
 
         [TitleGroup("Panel", "Widget"), ShowInInspector, ReadOnly, PropertyOrder(1)]
-        public PanelStackMode StackMode { get; set; } = PanelStackMode.Push;
+        public PanelStackMode StackMode { get; set; } = PanelStackMode.Standalone;
         #endregion
 
         #region Mono
