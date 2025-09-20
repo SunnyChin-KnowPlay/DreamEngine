@@ -7,9 +7,26 @@ using UnityEngine;
 namespace MysticIsle.DreamEngine.UI
 {
     /// <summary>
+    /// 面板打开模式
+    /// </summary>
+    public enum OpenMode
+    {
+        /// <summary>
+        /// 叠加：不关闭当前栈顶，直接在其上方叠加显示新面板
+        /// </summary>
+        Overlay = 0,
+        /// <summary>
+        /// 压栈：先关闭栈顶，再打开新面板，旧面板留在栈中（已关闭）
+        /// </summary>
+        Push,
+        /// <summary>
+        /// 替换：关闭并弹出栈顶，再打开新面板
+        /// </summary>
+        Replace,
+    }
+    /// <summary>
     /// UI管理器
     /// </summary>
-    [RequireComponent(typeof(Canvas))]
     public abstract class UIManager : MonoBehaviour, IManager
     {
         #region 字段与属性
@@ -19,6 +36,12 @@ namespace MysticIsle.DreamEngine.UI
         /// </summary>
         [ShowInInspector]
         private readonly Dictionary<string, WidgetPanel> panels = new();
+
+        /// <summary>
+        /// 每个 sortingLayer 独享一个面板列表（尾部视为栈顶）
+        /// </summary>
+        [ShowInInspector]
+        private readonly Dictionary<int, List<WidgetPanel>> layerPanelStacks = new();
 
         /// <summary>
         /// 当前Canvas组件
@@ -265,35 +288,90 @@ namespace MysticIsle.DreamEngine.UI
         }
 
         /// <summary>
-        /// 同步显示面板（泛型，无需手动提供路径）。
-        /// 默认实现：加载 + 挂载/排序 + 确保 Control + 调用面板 Show。
-        /// 导航/栈/层逻辑建议在派生类中通过 Open 等接口实现。
+        /// <summary>
+        /// 打开面板（泛型，无需手动提供路径），按 sortingLayerId 分组管理栈。
         /// </summary>
-        /// <typeparam name="TControl">面板控制类型</typeparam>
-        /// <returns>面板控制对象（可能为 null）</returns>
-        public virtual TControl ShowPanel<TControl>() where TControl : Control
+        public virtual TControl Open<TControl>(OpenMode mode = OpenMode.Overlay) where TControl : Control
         {
             string path = Control.GetPath<TControl>();
-            return ShowPanel<TControl>(path);
+            return Open<TControl>(path, mode);
         }
 
         /// <summary>
-        /// 同步显示面板（带自定义路径）。
-        /// 默认实现：加载 + 挂载/排序 + 确保 Control + 调用面板 Show。
-        /// 导航/栈/层逻辑建议在派生类中通过 Open 等接口实现。
+        /// 打开面板（带自定义路径），按 sortingLayerId 分组管理栈。
         /// </summary>
-        /// <typeparam name="TControl">面板控制类型</typeparam>
-        /// <param name="path">面板路径</param>
-        /// <returns>面板控制对象（可能为 null）</returns>
-        public virtual TControl ShowPanel<TControl>(string path) where TControl : Control
+        public virtual TControl Open<TControl>(string path, OpenMode mode = OpenMode.Overlay) where TControl : Control
         {
-            WidgetPanel widgetPanel = LoadPanel(path);
-            if (widgetPanel == null)
+            WidgetPanel panel = LoadPanel(path);
+            if (panel == null)
                 return null;
 
-            var ctrl = SetupPanel<TControl>(widgetPanel);
-            widgetPanel.Show();
+            // 获取目标 sortingLayerId（优先取面板Canvas）
+            int layerId = panel.Canvas ? panel.Canvas.sortingLayerID : this.Canvas.sortingLayerID;
+            if (!layerPanelStacks.TryGetValue(layerId, out var list))
+            {
+                list = new List<WidgetPanel>();
+                layerPanelStacks[layerId] = list;
+            }
+
+            WidgetPanel top = list.Count > 0 ? list[list.Count - 1] : null;
+
+            switch (mode)
+            {
+                case OpenMode.Push:
+                    if (top != null && top != panel)
+                        top.Hide();
+                    break;
+                case OpenMode.Replace:
+                    if (top != null)
+                    {
+                        top.Hide();
+                        list.RemoveAt(list.Count - 1);
+                    }
+                    break;
+                case OpenMode.Overlay:
+                default:
+                    // 不关闭栈顶
+                    break;
+            }
+
+            var ctrl = SetupPanel<TControl>(panel);
+            panel.Show();
+
+            if (list.Count == 0 || list[list.Count - 1] != panel)
+                list.Add(panel);
+
             return ctrl;
+        }
+
+        /// <summary>
+        /// 关闭指定类型的面板：仅关闭并移除目标，不影响其他面板的显示状态。
+        /// </summary>
+        public virtual void Close<TControl>() where TControl : Control
+        {
+            string path = Control.GetPath<TControl>();
+            Close(path);
+        }
+
+        /// <summary>
+        /// 关闭指定路径的面板：仅关闭并移除目标，不影响其他面板的显示状态。
+        /// </summary>
+        public virtual void Close(string path)
+        {
+            WidgetPanel panel = GetPanel(path);
+            if (panel == null)
+                return;
+
+            int layerId = panel.Canvas ? panel.Canvas.sortingLayerID : this.Canvas.sortingLayerID;
+            if (!layerPanelStacks.TryGetValue(layerId, out var list) || list.Count == 0)
+                return;
+
+            int index = list.IndexOf(panel);
+            if (index < 0)
+                return;
+
+            panel.Hide();
+            list.RemoveAt(index);
         }
 
         #endregion

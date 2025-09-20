@@ -42,6 +42,7 @@ namespace MysticIsle.DreamEngine.UI
         Blur = 1 << 1,
     }
 
+    [RequireComponent(typeof(Canvas))]
     public partial class WidgetPanel : Widget
     {
         #region Params
