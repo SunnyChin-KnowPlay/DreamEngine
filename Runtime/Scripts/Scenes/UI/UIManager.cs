@@ -24,9 +24,13 @@ namespace MysticIsle.DreamEngine.UI
         /// </summary>
         Replace,
     }
+
+
+
     /// <summary>
     /// UI管理器
     /// </summary>
+    [RequireComponent(typeof(Canvas))]
     public abstract class UIManager : MonoBehaviour, IManager
     {
         #region 字段与属性
@@ -106,6 +110,26 @@ namespace MysticIsle.DreamEngine.UI
         }
 
         // 基类不处理每帧栈检查；派生类可按需覆盖 Update。
+        protected virtual void Update()
+        {
+            foreach (var layer in this.layerPanelStacks.Keys)
+            {
+                var list = this.layerPanelStacks[layer];
+                if (list != null && list.Count > 0)
+                {
+                    var top = list[^1];
+                    if (top == null || !top.IsActive)
+                    {
+                        list.RemoveAt(list.Count - 1);
+                        if (list.Count > 0)
+                        {
+                            top = list[^1];
+                            top.Show();
+                        }
+                    }
+                }
+            }
+        }
 
         /// <summary>
         /// 刷新相机排序：先移除当前Canvas的相机，再用新的排序层级添加
@@ -302,11 +326,11 @@ namespace MysticIsle.DreamEngine.UI
         /// </summary>
         public virtual TControl Open<TControl>(string path, OpenMode mode = OpenMode.Overlay) where TControl : Control
         {
+            // 1) 加载并获取目标层的列表
             WidgetPanel panel = LoadPanel(path);
             if (panel == null)
                 return null;
 
-            // 获取目标 sortingLayerId（优先取面板Canvas）
             int layerId = panel.Canvas ? panel.Canvas.sortingLayerID : this.Canvas.sortingLayerID;
             if (!layerPanelStacks.TryGetValue(layerId, out var list))
             {
@@ -314,34 +338,49 @@ namespace MysticIsle.DreamEngine.UI
                 layerPanelStacks[layerId] = list;
             }
 
-            WidgetPanel top = list.Count > 0 ? list[list.Count - 1] : null;
+            WidgetPanel top = list.Count > 0 ? list[^1] : null;
+
+            // 2) 如果已存在于列表中，分情况处理
+            int idx = list.IndexOf(panel);
+            if (idx >= 0)
+            {
+                if (idx == list.Count - 1)
+                {
+                    // 已是栈顶：重开（Hide->Show），并返回控制器
+                    var ctrlTop = SetupPanel<TControl>(panel);
+                    panel.Hide();
+                    panel.Show();
+                    return ctrlTop;
+                }
+
+                list.RemoveAt(idx);
+            }
 
             switch (mode)
             {
                 case OpenMode.Push:
-                    if (top != null && top != panel)
+                    if (top != null)
                         top.Hide();
                     break;
                 case OpenMode.Replace:
                     if (top != null)
                     {
                         top.Hide();
-                        list.RemoveAt(list.Count - 1);
+                        if (list != null && list.Count > 0)
+                            list.RemoveAt(list.Count - 1);
                     }
                     break;
                 case OpenMode.Overlay:
                 default:
-                    // 不关闭栈顶
                     break;
             }
 
             var ctrl = SetupPanel<TControl>(panel);
+            AttachPanelToRoot(panel);
             panel.Show();
-
-            if (list.Count == 0 || list[list.Count - 1] != panel)
-                list.Add(panel);
-
+            list.Add(panel);
             return ctrl;
+
         }
 
         /// <summary>
