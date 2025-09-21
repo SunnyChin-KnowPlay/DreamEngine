@@ -444,6 +444,11 @@ namespace MysticIsle.DreamEngine.UI
         #endregion
 
         #region Switch
+        public virtual void Close()
+        {
+            this.Hide();
+        }
+
         /// <summary>
         /// Shows the widget by setting it active.
         /// </summary>

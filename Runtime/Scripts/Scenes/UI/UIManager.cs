@@ -7,27 +7,6 @@ using UnityEngine;
 namespace MysticIsle.DreamEngine.UI
 {
     /// <summary>
-    /// 面板打开模式
-    /// </summary>
-    public enum OpenMode
-    {
-        /// <summary>
-        /// 叠加：不关闭当前栈顶，直接在其上方叠加显示新面板
-        /// </summary>
-        Overlay = 0,
-        /// <summary>
-        /// 压栈：先关闭栈顶，再打开新面板，旧面板留在栈中（已关闭）
-        /// </summary>
-        Push,
-        /// <summary>
-        /// 替换：关闭并弹出栈顶，再打开新面板
-        /// </summary>
-        Replace,
-    }
-
-
-
-    /// <summary>
     /// UI管理器
     /// </summary>
     [RequireComponent(typeof(Canvas))]
@@ -107,28 +86,6 @@ namespace MysticIsle.DreamEngine.UI
         protected virtual void OnDestroy()
         {
             this.UnloadAllPanels();
-        }
-
-        // 基类不处理每帧栈检查；派生类可按需覆盖 Update。
-        protected virtual void Update()
-        {
-            foreach (var layer in this.layerPanelStacks.Keys)
-            {
-                var list = this.layerPanelStacks[layer];
-                if (list != null && list.Count > 0)
-                {
-                    var top = list[^1];
-                    if (top == null || !top.IsActive)
-                    {
-                        list.RemoveAt(list.Count - 1);
-                        if (list.Count > 0)
-                        {
-                            top = list[^1];
-                            top.Show();
-                        }
-                    }
-                }
-            }
         }
 
         /// <summary>
@@ -312,19 +269,19 @@ namespace MysticIsle.DreamEngine.UI
         }
 
         /// <summary>
-        /// <summary>
         /// 打开面板（泛型，无需手动提供路径），按 sortingLayerId 分组管理栈。
+        /// 默认行为：Overlay（不关闭当前栈顶）
         /// </summary>
-        public virtual TControl Open<TControl>(OpenMode mode = OpenMode.Overlay) where TControl : Control
+        public virtual TControl Open<TControl>() where TControl : Control
         {
             string path = Control.GetPath<TControl>();
-            return Open<TControl>(path, mode);
+            return Open<TControl>(path);
         }
 
         /// <summary>
         /// 打开面板（带自定义路径），按 sortingLayerId 分组管理栈。
         /// </summary>
-        public virtual TControl Open<TControl>(string path, OpenMode mode = OpenMode.Overlay) where TControl : Control
+        public virtual TControl Open<TControl>(string path) where TControl : Control
         {
             // 1) 加载并获取目标层的列表
             WidgetPanel panel = LoadPanel(path);
@@ -337,8 +294,6 @@ namespace MysticIsle.DreamEngine.UI
                 list = new List<WidgetPanel>();
                 layerPanelStacks[layerId] = list;
             }
-
-            WidgetPanel top = list.Count > 0 ? list[^1] : null;
 
             // 2) 如果已存在于列表中，分情况处理
             int idx = list.IndexOf(panel);
@@ -354,25 +309,6 @@ namespace MysticIsle.DreamEngine.UI
                 }
 
                 list.RemoveAt(idx);
-            }
-
-            switch (mode)
-            {
-                case OpenMode.Push:
-                    if (top != null)
-                        top.Hide();
-                    break;
-                case OpenMode.Replace:
-                    if (top != null)
-                    {
-                        top.Hide();
-                        if (list != null && list.Count > 0)
-                            list.RemoveAt(list.Count - 1);
-                    }
-                    break;
-                case OpenMode.Overlay:
-                default:
-                    break;
             }
 
             var ctrl = SetupPanel<TControl>(panel);
@@ -398,6 +334,18 @@ namespace MysticIsle.DreamEngine.UI
         public virtual void Close(string path)
         {
             WidgetPanel panel = GetPanel(path);
+            if (panel != null)
+            {
+                Close(panel);
+            }
+        }
+
+        /// <summary>
+        /// 维护面板栈：自动弹出已 inactive 的面板
+        /// </summary>
+        /// <param name="panel"></param>
+        public virtual void Close(WidgetPanel panel)
+        {
             if (panel == null)
                 return;
 

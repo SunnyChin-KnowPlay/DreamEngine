@@ -96,6 +96,18 @@ namespace MysticIsle.DreamEngine.UI
         {
             ApplyExit().Forget();
         }
+
+        public override void Close()
+        {
+            if (null != this.UIManager)
+            {
+                this.UIManager.Close(this);
+            }
+            else
+            {
+                base.Close();
+            }
+        }
         #endregion
 
         #region Logic
