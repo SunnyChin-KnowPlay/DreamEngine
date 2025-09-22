@@ -289,6 +289,8 @@ namespace MysticIsle.DreamEngine.UI
             if (panel == null)
                 return null;
 
+            var ctrl = SetupPanel<TControl>(panel);
+
             int layerId = panel.Canvas ? panel.Canvas.sortingLayerID : this.Canvas.sortingLayerID;
             if (!layerPanelStacks.TryGetValue(layerId, out var list))
             {
@@ -303,10 +305,9 @@ namespace MysticIsle.DreamEngine.UI
                 if (idx == list.Count - 1)
                 {
                     // 已是栈顶：重开（Hide->Show），并返回控制器
-                    var ctrlTop = SetupPanel<TControl>(panel);
                     panel.Hide();
                     panel.Show();
-                    return ctrlTop;
+                    return ctrl;
                 }
 
                 // 不是栈顶：移除旧位置，后续会重新加入到尾部
@@ -314,7 +315,7 @@ namespace MysticIsle.DreamEngine.UI
             }
 
             // 3) 根据面板自身声明的 OpenMode 决定接下来的处理（缺省为 Show）
-            var ctrl = SetupPanel<TControl>(panel);
+
             var mode = ctrl.OpenMode;
 
             if (mode == PanelOpenMode.Push)
