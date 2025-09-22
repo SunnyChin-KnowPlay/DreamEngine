@@ -28,13 +28,13 @@ namespace MysticIsle.DreamEngine.UI
         /// <exception cref="InvalidOperationException"></exception>
         public static string GetPath(Type type)
         {
-            // 获取路径
-            var pathAttribute = type.GetCustomAttribute<PanelPathAttribute>();
-            if (pathAttribute == null)
+            // 获取路径（从合并的 PanelOpenModeAttribute 中读取 Path 字段）
+            var mergedAttr = type.GetCustomAttribute<PanelAttribute>();
+            if (mergedAttr == null || string.IsNullOrEmpty(mergedAttr.Path))
             {
                 throw new InvalidOperationException($"Panel path not defined for {type.Name}");
             }
-            return pathAttribute.Path;
+            return mergedAttr.Path;
         }
 
         #region Event

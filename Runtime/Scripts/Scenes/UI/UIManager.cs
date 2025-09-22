@@ -435,7 +435,7 @@ namespace MysticIsle.DreamEngine.UI
         /// </summary>
         private PanelOpenMode GetOpenModeForType(System.Type type)
         {
-            var attr = (PanelOpenModeAttribute)System.Attribute.GetCustomAttribute(type, typeof(PanelOpenModeAttribute));
+            var attr = (PanelAttribute)System.Attribute.GetCustomAttribute(type, typeof(PanelAttribute));
             return attr != null ? attr.Mode : PanelOpenMode.Show;
         }
 
