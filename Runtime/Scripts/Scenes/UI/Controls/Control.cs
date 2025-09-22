@@ -162,7 +162,7 @@ namespace MysticIsle.DreamEngine.UI
         /// </summary>
         public virtual void Close()
         {
-            FirstWidget.Hide();
+            FirstWidget.Close();
         }
         #endregion
 
