@@ -308,16 +308,46 @@ namespace MysticIsle.DreamEngine.UI
                     return ctrlTop;
                 }
 
+                // 不是栈顶：移除旧位置，后续会重新加入到尾部
                 list.RemoveAt(idx);
             }
 
+            // 3) 根据面板自身声明的 OpenMode 决定接下来的处理（缺省为 Show）
             var ctrl = SetupPanel<TControl>(panel);
+            var mode = GetOpenModeForType(typeof(TControl));
+
+            if (mode == PanelOpenMode.Push)
+            {
+                // 找到上一个 Push 的索引（从尾部向前搜索），若不存在则从 0 开始
+                int prevPushIndex = -1;
+                for (int i = list.Count - 1; i >= 0; --i)
+                {
+                    if (GetOpenModeForPanel(list[i]) == PanelOpenMode.Push)
+                    {
+                        prevPushIndex = i;
+                        break;
+                    }
+                }
+
+                int removeStart = prevPushIndex >= 0 ? prevPushIndex : 0;
+
+                // 从尾部向前移除并 Hide，直到移除到 removeStart
+                for (int i = list.Count - 1; i >= removeStart; --i)
+                {
+                    var toClose = list[i];
+                    toClose?.Hide();
+                }
+            }
+
+            // 统一的挂载/显示/入栈步骤（适用于 Push 与 Show）
             AttachPanelToRoot(panel);
             panel.Show();
             list.Add(panel);
             return ctrl;
 
         }
+
+
 
         /// <summary>
         /// 关闭指定类型的面板：仅关闭并移除目标，不影响其他面板的显示状态。
@@ -357,8 +387,48 @@ namespace MysticIsle.DreamEngine.UI
             if (index < 0)
                 return;
 
+            // 如果被关闭的面板是栈顶并且其 OpenMode 是 Push，则在移除后恢复上一层显示
+            bool wasTop = index == list.Count - 1;
+            var mode = GetOpenModeForPanel(panel);
+
             panel.Hide();
             list.RemoveAt(index);
+
+            if (wasTop && mode == PanelOpenMode.Push)
+            {
+                // 从栈顶向前逐个 Show，直到遇到第一个声明为 Show 的面板（包含该面板）
+                for (int i = list.Count - 1; i >= 0; --i)
+                {
+                    var p = list[i];
+                    p?.Show();
+                    if (GetOpenModeForPanel(p) == PanelOpenMode.Show)
+                        break;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 从一个已经实例化的 WidgetPanel 上获取其对应 Control 类型声明的 OpenMode（若找不到则为 Show）
+        /// </summary>
+        private PanelOpenMode GetOpenModeForPanel(WidgetPanel panel)
+        {
+            if (panel == null)
+                return PanelOpenMode.Show;
+
+            if (!panel.TryGetComponent<Control>(out var control))
+                return PanelOpenMode.Show;
+
+            var type = control.GetType();
+            return GetOpenModeForType(type);
+        }
+
+        /// <summary>
+        /// 从类型上读取 PanelOpenMode，如果没有声明则返回 Show。
+        /// </summary>
+        private PanelOpenMode GetOpenModeForType(System.Type type)
+        {
+            var attr = (PanelOpenModeAttribute)System.Attribute.GetCustomAttribute(type, typeof(PanelOpenModeAttribute));
+            return attr != null ? attr.Mode : PanelOpenMode.Show;
         }
 
         #endregion
