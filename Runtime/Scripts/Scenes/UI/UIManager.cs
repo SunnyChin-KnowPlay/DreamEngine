@@ -1,6 +1,7 @@
 using Cysharp.Threading.Tasks;
 using MysticIsle.DreamEngine.Core;
 using Sirenix.OdinInspector;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -347,10 +348,8 @@ namespace MysticIsle.DreamEngine.UI
 
         }
 
-
-
         /// <summary>
-        /// 关闭指定类型的面板：仅关闭并移除目标，不影响其他面板的显示状态。
+        /// 关闭指定类型的面板
         /// </summary>
         public virtual void Close<TControl>() where TControl : Control
         {
@@ -359,7 +358,16 @@ namespace MysticIsle.DreamEngine.UI
         }
 
         /// <summary>
-        /// 关闭指定路径的面板：仅关闭并移除目标，不影响其他面板的显示状态。
+        /// 关闭指定类型的面板
+        /// </summary>
+        public virtual void Close(Type type)
+        {
+            string path = Control.GetPath(type);
+            Close(path);
+        }
+
+        /// <summary>
+        /// 关闭指定路径的面板
         /// </summary>
         public virtual void Close(string path)
         {

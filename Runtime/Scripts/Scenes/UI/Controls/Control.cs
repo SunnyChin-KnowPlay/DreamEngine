@@ -17,11 +17,22 @@ namespace MysticIsle.DreamEngine.UI
         /// <returns>控件路径</returns>
         public static string GetPath<T>() where T : Control
         {
+            return GetPath(typeof(T));
+        }
+
+        /// <summary>
+        /// 获取控件路径
+        /// </summary>
+        /// <param name="type">控件类型</param>
+        /// <returns>控件路径</returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        public static string GetPath(Type type)
+        {
             // 获取路径
-            var pathAttribute = typeof(T).GetCustomAttribute<PanelPathAttribute>();
+            var pathAttribute = type.GetCustomAttribute<PanelPathAttribute>();
             if (pathAttribute == null)
             {
-                throw new InvalidOperationException($"Panel path not defined for {typeof(T).Name}");
+                throw new InvalidOperationException($"Panel path not defined for {type.Name}");
             }
             return pathAttribute.Path;
         }
