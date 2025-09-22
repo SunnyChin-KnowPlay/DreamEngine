@@ -315,7 +315,7 @@ namespace MysticIsle.DreamEngine.UI
 
             // 3) 根据面板自身声明的 OpenMode 决定接下来的处理（缺省为 Show）
             var ctrl = SetupPanel<TControl>(panel);
-            var mode = GetOpenModeForType(typeof(TControl));
+            var mode = ctrl.OpenMode;
 
             if (mode == PanelOpenMode.Push)
             {
@@ -409,7 +409,7 @@ namespace MysticIsle.DreamEngine.UI
                 {
                     var p = list[i];
                     p?.Show();
-                    if (GetOpenModeForPanel(p) == PanelOpenMode.Show)
+                    if (GetOpenModeForPanel(p) != PanelOpenMode.Push)
                         break;
                 }
             }
@@ -426,17 +426,7 @@ namespace MysticIsle.DreamEngine.UI
             if (!panel.TryGetComponent<Control>(out var control))
                 return PanelOpenMode.Show;
 
-            var type = control.GetType();
-            return GetOpenModeForType(type);
-        }
-
-        /// <summary>
-        /// 从类型上读取 PanelOpenMode，如果没有声明则返回 Show。
-        /// </summary>
-        private PanelOpenMode GetOpenModeForType(System.Type type)
-        {
-            var attr = (PanelAttribute)System.Attribute.GetCustomAttribute(type, typeof(PanelAttribute));
-            return attr != null ? attr.Mode : PanelOpenMode.Show;
+            return control.OpenMode;
         }
 
         #endregion

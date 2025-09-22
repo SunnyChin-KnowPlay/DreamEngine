@@ -72,6 +72,10 @@ namespace MysticIsle.DreamEngine.UI
         public PanelStackMode StackMode { get; set; } = PanelStackMode.Standalone;
         #endregion
 
+        #region OpenMode Helper
+
+        #endregion
+
         #region Mono
         protected override void Awake()
         {

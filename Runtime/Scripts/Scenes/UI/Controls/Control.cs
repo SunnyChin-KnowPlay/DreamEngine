@@ -10,6 +10,7 @@ namespace MysticIsle.DreamEngine.UI
     [RequireComponent(typeof(Widget))]
     public partial class Control : MonoBehaviour
     {
+        #region Panel metadata helpers
         /// <summary>
         /// 获取控件路径
         /// </summary>
@@ -36,6 +37,37 @@ namespace MysticIsle.DreamEngine.UI
             }
             return mergedAttr.Path;
         }
+
+        /// <summary>
+        /// 从面板类型上读取 PanelOpenMode（用于决定默认打开语义）。
+        /// 若类型未声明 PanelAttribute，则返回 <see cref="PanelOpenMode.Show"/>。
+        /// </summary>
+        public PanelOpenMode OpenMode => GetOpenModeForType(this.GetType());
+
+        /// <summary>
+        /// 从类型上读取 PanelOpenMode。如果子类使用 <c>Default</c>，则向上查找父类的声明，
+        /// 直到找到非 Default 的值或到达基类。默认回退为 <see cref="PanelOpenMode.Show"/>。
+        /// </summary>
+        private PanelOpenMode GetOpenModeForType(System.Type type)
+        {
+            var t = type;
+            while (t != null && t != typeof(object))
+            {
+                var attr = (PanelAttribute)System.Attribute.GetCustomAttribute(t, typeof(PanelAttribute));
+                if (attr != null)
+                {
+                    // 如果子类声明为 Default，则继续往父类查找
+                    if (attr.Mode != PanelOpenMode.Default)
+                        return attr.Mode;
+                }
+
+                t = t.BaseType;
+            }
+
+            // 未找到明确声明的模式则返回 Show（与现有兼容行为一致）
+            return PanelOpenMode.Show;
+        }
+        #endregion
 
         #region Event
         // 控件事件定义
