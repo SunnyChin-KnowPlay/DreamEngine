@@ -6,32 +6,6 @@ using Cysharp.Threading.Tasks;
 namespace MysticIsle.DreamEngine.UI
 {
     /// <summary>
-    /// 面板在导航栈中的行为模式
-    /// - Standalone: 独立显示，不参与栈管理
-    /// - Push: 入栈并隐藏上一个栈顶
-    /// - Replace: 入栈为临时顶层，下次入栈时先将其弹出再入栈
-    /// </summary>
-    public enum PanelStackMode
-    {
-        Standalone = 0,
-        Push = 1,
-        Replace = 2,
-    }
-
-    /// <summary>
-    /// 声明面板的栈行为模式的特性。标记在具体面板类上。
-    /// </summary>
-    [System.AttributeUsage(System.AttributeTargets.Class, Inherited = true, AllowMultiple = false)]
-    public sealed class PanelStackModeAttribute : System.Attribute
-    {
-        public PanelStackMode Mode { get; }
-        public PanelStackModeAttribute(PanelStackMode mode)
-        {
-            Mode = mode;
-        }
-    }
-
-    /// <summary>
     /// 面板开关动画类型
     /// </summary>
     [System.Flags]
@@ -67,9 +41,6 @@ namespace MysticIsle.DreamEngine.UI
 
         [FoldoutGroup("Panel/Animation Settings"), EnumToggleButtons, PropertyOrder(0)]
         public EPanelSwitchAnimationFunction animationFunction;
-
-        [TitleGroup("Panel", "Widget"), ShowInInspector, ReadOnly, PropertyOrder(1)]
-        public PanelStackMode StackMode { get; set; } = PanelStackMode.Standalone;
         #endregion
 
         #region OpenMode Helper

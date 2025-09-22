@@ -43,17 +43,7 @@ namespace MysticIsle.DreamEngine.UI
         /// </summary>
         public string Path { get; }
 
-        public PanelAttribute(PanelOpenMode mode)
-            : this(mode, null)
-        {
-        }
-
-        public PanelAttribute(string path)
-            : this(PanelOpenMode.Default, path)
-        {
-        }
-
-        public PanelAttribute(PanelOpenMode mode, string path)
+        public PanelAttribute(string path, PanelOpenMode mode)
         {
             Mode = mode;
             Path = path;
