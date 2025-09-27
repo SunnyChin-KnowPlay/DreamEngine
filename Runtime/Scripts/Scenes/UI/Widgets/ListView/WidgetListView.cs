@@ -64,42 +64,45 @@ namespace MysticIsle.DreamEngine.UI
                 obj.SetActive(false);
             }
 
-            // 存放本次刷新需要使用的列表项
-            List<GameObject> activeItems = new();
-
-            // 遍历数据集合，为每个数据项获取一个列表项
-            foreach (T data in dataCollection)
+            if (null != dataCollection)
             {
-                GameObject item;
-                if (itemPool.Count > 0)
+                // 存放本次刷新需要使用的列表项
+                List<GameObject> activeItems = new();
+
+                // 遍历数据集合，为每个数据项获取一个列表项
+                foreach (T data in dataCollection)
                 {
-                    // 如果池中有对象，则复用
-                    item = itemPool.Dequeue();
-                    item.SetActive(true);
-                }
-                else
-                {
-                    // 池中不足则新实例化一个
-                    if (itemPrefab == null)
+                    GameObject item;
+                    if (itemPool.Count > 0)
                     {
-                        Debug.LogError("ItemPrefab 未设置，无法刷新 WidgetListView。");
-                        return;
+                        // 如果池中有对象，则复用
+                        item = itemPool.Dequeue();
+                        item.SetActive(true);
                     }
-                    item = Instantiate(itemPrefab, transform, false);
-                    item.SetActive(true);
+                    else
+                    {
+                        // 池中不足则新实例化一个
+                        if (itemPrefab == null)
+                        {
+                            Debug.LogError("ItemPrefab 未设置，无法刷新 WidgetListView。");
+                            return;
+                        }
+                        item = Instantiate(itemPrefab, transform, false);
+                        item.SetActive(true);
+                    }
+
+                    // 调用回调函数，对列表项做额外初始化操作
+                    callback?.Invoke(data, item);
+
+                    // 将该对象加入本次刷新列表
+                    activeItems.Add(item);
                 }
 
-                // 调用回调函数，对列表项做额外初始化操作
-                callback?.Invoke(data, item);
-
-                // 将该对象加入本次刷新列表
-                activeItems.Add(item);
-            }
-
-            // 将使用过的对象重新归还到对象池
-            foreach (GameObject item in activeItems)
-            {
-                itemPool.Enqueue(item);
+                // 将使用过的对象重新归还到对象池
+                foreach (GameObject item in activeItems)
+                {
+                    itemPool.Enqueue(item);
+                }
             }
         }
         #endregion
