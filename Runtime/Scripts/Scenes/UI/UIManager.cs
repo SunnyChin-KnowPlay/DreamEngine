@@ -320,24 +320,15 @@ namespace MysticIsle.DreamEngine.UI
 
             if (mode == PanelOpenMode.Push)
             {
-                // 找到上一个 Push 的索引（从尾部向前搜索），若不存在则从 0 开始
-                int prevPushIndex = -1;
+                // 仅隐藏上一个声明为 Push 的面板（如果存在），不要影响声明为 Show 的面板
                 for (int i = list.Count - 1; i >= 0; --i)
                 {
                     if (GetOpenModeForPanel(list[i]) == PanelOpenMode.Push)
                     {
-                        prevPushIndex = i;
-                        break;
+                        var prev = list[i];
+                        prev?.Hide();
+                        break; // 只隐藏最近的一个 Push
                     }
-                }
-
-                int removeStart = prevPushIndex >= 0 ? prevPushIndex : 0;
-
-                // 从尾部向前移除并 Hide，直到移除到 removeStart
-                for (int i = list.Count - 1; i >= removeStart; --i)
-                {
-                    var toClose = list[i];
-                    toClose?.Hide();
                 }
             }
 
@@ -405,13 +396,14 @@ namespace MysticIsle.DreamEngine.UI
 
             if (wasTop && mode == PanelOpenMode.Push)
             {
-                // 从栈顶向前逐个 Show，直到遇到第一个声明为 Show 的面板（包含该面板）
+                // 只恢复最近的上一个 Push 面板（如果存在），不处理中间的 Show 面板
                 for (int i = list.Count - 1; i >= 0; --i)
                 {
-                    var p = list[i];
-                    p?.Show();
-                    if (GetOpenModeForPanel(p) != PanelOpenMode.Push)
+                    if (GetOpenModeForPanel(list[i]) == PanelOpenMode.Push)
+                    {
+                        list[i]?.Show();
                         break;
+                    }
                 }
             }
         }
