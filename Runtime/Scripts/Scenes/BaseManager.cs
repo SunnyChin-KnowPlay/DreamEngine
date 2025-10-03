@@ -129,7 +129,7 @@ namespace MysticIsle.DreamEngine
                 }
             }
 
-            OnCreateManagers();
+            OnCreateGameSystems();
         }
 
         /// <summary>
@@ -228,33 +228,33 @@ namespace MysticIsle.DreamEngine
         #region Initialization
 
         /// <summary>
-        /// 创建管理器
+        /// 创建并初始化游戏系统（在 Awake 中调用）
         /// </summary>
-        protected abstract void OnCreateManagers();
+        protected abstract void OnCreateGameSystems();
 
         /// <summary>
-        /// 创建指定类型的管理器
+        /// 创建指定类型的游戏系统（Game System）
         /// </summary>
-        /// <typeparam name="TManager">管理器类型</typeparam>
-        /// <returns>创建的管理器</returns>
-        protected TManager CreateManager<TManager>() where TManager : MonoBehaviour, IGameSystem
+        /// <typeparam name="TGameSystem">游戏系统类型</typeparam>
+        /// <returns>创建的系统实例</returns>
+        protected TGameSystem CreateGameSystem<TGameSystem>() where TGameSystem : MonoBehaviour, IGameSystem
         {
-            string managerName = string.Format("{0}", typeof(TManager).Name);
+            string managerName = string.Format("{0}", typeof(TGameSystem).Name);
             GameObject managerObject = new(managerName);
             managerObject.transform.SetParent(this.transform, false);
-            TManager manager = managerObject.AddComponent<TManager>();
+            TGameSystem manager = managerObject.AddComponent<TGameSystem>();
             gameSystems.Add(manager);
 
             return manager;
         }
 
         /// <summary>
-        /// 通过路径读取预制件创建指定类型的管理器
+        /// 通过路径读取预制件创建指定类型的游戏系统（Game System）
         /// </summary>
-        /// <typeparam name="TManager">管理器类型</typeparam>
+        /// <typeparam name="TGameSystem">游戏系统类型</typeparam>
         /// <param name="path">预制件路径</param>
-        /// <returns>创建的管理器</returns>
-        protected TManager CreateManager<TManager>(string path) where TManager : MonoBehaviour, IGameSystem
+        /// <returns>创建的系统实例</returns>
+        protected TGameSystem CreateGameSystem<TGameSystem>(string path) where TGameSystem : MonoBehaviour, IGameSystem
         {
             Object obj = AssetManager.LoadAsset<Object>(path);
             if (obj == null)
@@ -263,12 +263,12 @@ namespace MysticIsle.DreamEngine
             }
 
             GameObject managerObject = Instantiate(obj) as GameObject;
-            string managerName = string.Format("{0}", typeof(TManager).Name);
+            string managerName = string.Format("{0}", typeof(TGameSystem).Name);
             managerObject.name = managerName;
             managerObject.transform.SetParent(this.transform, false);
-            if (!managerObject.TryGetComponent<TManager>(out var manager))
+            if (!managerObject.TryGetComponent<TGameSystem>(out var manager))
             {
-                manager = managerObject.AddComponent<TManager>();
+                manager = managerObject.AddComponent<TGameSystem>();
             }
 
             gameSystems.Add(manager);
