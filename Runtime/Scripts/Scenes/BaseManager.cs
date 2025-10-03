@@ -83,7 +83,7 @@ namespace MysticIsle.DreamEngine
         #region Fields
 
         private float runningTime;
-        private readonly List<IManager> managers = new();
+        private readonly List<IGameSystem> gameSystems = new();
         #endregion
 
         #region Properties
@@ -101,7 +101,7 @@ namespace MysticIsle.DreamEngine
         /// <summary>
         /// 阶段管理器
         /// </summary>
-        public PhaseManager PhaseManager { get; protected set; }
+        public PhaseController PhaseController { get; protected set; }
 
         #endregion
 
@@ -145,7 +145,7 @@ namespace MysticIsle.DreamEngine
                 }
             }
 
-            managers.Clear();
+            gameSystems.Clear();
         }
 
         /// <summary>
@@ -237,13 +237,13 @@ namespace MysticIsle.DreamEngine
         /// </summary>
         /// <typeparam name="TManager">管理器类型</typeparam>
         /// <returns>创建的管理器</returns>
-        protected TManager CreateManager<TManager>() where TManager : MonoBehaviour, IManager
+        protected TManager CreateManager<TManager>() where TManager : MonoBehaviour, IGameSystem
         {
             string managerName = string.Format("{0}", typeof(TManager).Name);
             GameObject managerObject = new(managerName);
             managerObject.transform.SetParent(this.transform, false);
             TManager manager = managerObject.AddComponent<TManager>();
-            managers.Add(manager);
+            gameSystems.Add(manager);
 
             return manager;
         }
@@ -254,7 +254,7 @@ namespace MysticIsle.DreamEngine
         /// <typeparam name="TManager">管理器类型</typeparam>
         /// <param name="path">预制件路径</param>
         /// <returns>创建的管理器</returns>
-        protected TManager CreateManager<TManager>(string path) where TManager : MonoBehaviour, IManager
+        protected TManager CreateManager<TManager>(string path) where TManager : MonoBehaviour, IGameSystem
         {
             Object obj = AssetManager.LoadAsset<Object>(path);
             if (obj == null)
@@ -271,7 +271,7 @@ namespace MysticIsle.DreamEngine
                 manager = managerObject.AddComponent<TManager>();
             }
 
-            managers.Add(manager);
+            gameSystems.Add(manager);
 
             return manager;
         }
