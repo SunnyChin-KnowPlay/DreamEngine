@@ -72,18 +72,12 @@ namespace MysticIsle.DreamEngine
                 }
             }
         }
-
-        /// <summary>
-        /// 是否为全局
-        /// </summary>
-        protected abstract bool IsGlobal { get; }
-
         #endregion
 
         #region Fields
 
         private float runningTime;
-        private readonly List<IGameSystem> gameSystems = new();
+        private readonly List<IGameController> gameSystems = new();
         #endregion
 
         #region Properties
@@ -118,10 +112,6 @@ namespace MysticIsle.DreamEngine
                 if (instance == null)
                 {
                     instance = this as TBaseManager;
-                    if (IsGlobal)
-                    {
-                        DontDestroyOnLoad(gameObject);
-                    }
                 }
                 else if (instance != this)
                 {
@@ -233,28 +223,28 @@ namespace MysticIsle.DreamEngine
         protected abstract void OnCreateGameSystems();
 
         /// <summary>
-        /// 创建指定类型的游戏系统（Game System）
+        /// 创建指定类型的游戏控制器（Game Controller）
         /// </summary>
-        /// <typeparam name="TGameSystem">游戏系统类型</typeparam>
+        /// <typeparam name="TGameController">游戏系统类型</typeparam>
         /// <returns>创建的系统实例</returns>
-        protected TGameSystem CreateGameSystem<TGameSystem>() where TGameSystem : MonoBehaviour, IGameSystem
+        protected TGameController CreateGameController<TGameController>() where TGameController : MonoBehaviour, IGameController
         {
-            string managerName = string.Format("{0}", typeof(TGameSystem).Name);
+            string managerName = string.Format("{0}", typeof(TGameController).Name);
             GameObject managerObject = new(managerName);
             managerObject.transform.SetParent(this.transform, false);
-            TGameSystem manager = managerObject.AddComponent<TGameSystem>();
+            TGameController manager = managerObject.AddComponent<TGameController>();
             gameSystems.Add(manager);
 
             return manager;
         }
 
         /// <summary>
-        /// 通过路径读取预制件创建指定类型的游戏系统（Game System）
+        /// 通过路径读取预制件创建指定类型的游戏控制器（Game Controller）
         /// </summary>
-        /// <typeparam name="TGameSystem">游戏系统类型</typeparam>
+        /// <typeparam name="TGameController">游戏系统类型</typeparam>
         /// <param name="path">预制件路径</param>
         /// <returns>创建的系统实例</returns>
-        protected TGameSystem CreateGameSystem<TGameSystem>(string path) where TGameSystem : MonoBehaviour, IGameSystem
+        protected TGameController CreateGameController<TGameController>(string path) where TGameController : MonoBehaviour, IGameController
         {
             Object obj = AssetManager.LoadAsset<Object>(path);
             if (obj == null)
@@ -263,12 +253,12 @@ namespace MysticIsle.DreamEngine
             }
 
             GameObject managerObject = Instantiate(obj) as GameObject;
-            string managerName = string.Format("{0}", typeof(TGameSystem).Name);
+            string managerName = string.Format("{0}", typeof(TGameController).Name);
             managerObject.name = managerName;
             managerObject.transform.SetParent(this.transform, false);
-            if (!managerObject.TryGetComponent<TGameSystem>(out var manager))
+            if (!managerObject.TryGetComponent<TGameController>(out var manager))
             {
-                manager = managerObject.AddComponent<TGameSystem>();
+                manager = managerObject.AddComponent<TGameController>();
             }
 
             gameSystems.Add(manager);

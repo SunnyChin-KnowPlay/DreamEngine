@@ -11,7 +11,7 @@ namespace MysticIsle.DreamEngine.UI
     /// UI管理器
     /// </summary>
     [RequireComponent(typeof(Canvas))]
-    public abstract class UIManager : MonoBehaviour, IGameSystem
+    public abstract class UIManager : MonoBehaviour, IGameController
     {
         #region 字段与属性
 
