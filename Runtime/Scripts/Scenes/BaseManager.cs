@@ -196,35 +196,6 @@ namespace MysticIsle.DreamEngine
 
         #endregion
 
-        #region Logic
-
-        /// <summary>
-        /// 在层级中查找对象
-        /// </summary>
-        /// <param name="parent">父对象</param>
-        /// <param name="objectName">对象名称</param>
-        /// <returns>找到的对象</returns>
-        protected static GameObject FindObjectInHierarchy(GameObject parent, string objectName)
-        {
-            if (parent.name == objectName)
-            {
-                return parent;
-            }
-
-            foreach (Transform child in parent.transform)
-            {
-                GameObject foundObj = FindObjectInHierarchy(child.gameObject, objectName);
-                if (foundObj != null)
-                {
-                    return foundObj;
-                }
-            }
-
-            return null;
-        }
-
-        #endregion
-
         #region Initialization
 
         /// <summary>
