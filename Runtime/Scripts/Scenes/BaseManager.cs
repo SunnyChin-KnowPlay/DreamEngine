@@ -204,6 +204,27 @@ namespace MysticIsle.DreamEngine
         protected abstract void OnCreateGameSystems();
 
         /// <summary>
+        /// 将已有的游戏系统（Game System）添加到管理器
+        /// </summary>
+        /// <typeparam name="TGameSystem">游戏系统类型</typeparam>
+        /// <param name="gameSystem">游戏系统实例</param>
+        /// <returns>添加后的系统实例</returns>
+        protected TGameSystem AddGameSystem<TGameSystem>(TGameSystem gameSystem) where TGameSystem : class, IGameSystem
+        {
+            if (gameSystem == null)
+            {
+                return null;
+            }
+
+            if (!gameSystems.Contains(gameSystem))
+            {
+                gameSystems.Add(gameSystem);
+            }
+
+            return gameSystem;
+        }
+
+        /// <summary>
         /// 创建指定类型的游戏系统（Game System）
         /// </summary>
         /// <typeparam name="TGameSystem">游戏系统类型</typeparam>
@@ -214,37 +235,8 @@ namespace MysticIsle.DreamEngine
             GameObject managerObject = new(managerName);
             managerObject.transform.SetParent(this.transform, false);
             TGameSystem manager = managerObject.AddComponent<TGameSystem>();
-            gameSystems.Add(manager);
 
-            return manager;
-        }
-
-        /// <summary>
-        /// 通过路径读取预制件创建指定类型的游戏系统（Game System）
-        /// </summary>
-        /// <typeparam name="TGameSystem">游戏系统类型</typeparam>
-        /// <param name="path">预制件路径</param>
-        /// <returns>创建的系统实例</returns>
-        protected TGameSystem CreateGameSystem<TGameSystem>(string path) where TGameSystem : MonoBehaviour, IGameSystem
-        {
-            Object obj = AssetManager.LoadAsset<Object>(path);
-            if (obj == null)
-            {
-                return null;
-            }
-
-            GameObject managerObject = Instantiate(obj) as GameObject;
-            string managerName = string.Format("{0}", typeof(TGameSystem).Name);
-            managerObject.name = managerName;
-            managerObject.transform.SetParent(this.transform, false);
-            if (!managerObject.TryGetComponent<TGameSystem>(out var manager))
-            {
-                manager = managerObject.AddComponent<TGameSystem>();
-            }
-
-            gameSystems.Add(manager);
-
-            return manager;
+            return AddGameSystem(manager);
         }
 
         #endregion
