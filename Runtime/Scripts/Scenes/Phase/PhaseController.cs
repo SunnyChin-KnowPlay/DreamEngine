@@ -7,7 +7,7 @@ namespace MysticIsle.DreamEngine.Phases
     /// <summary>
     /// Manages the phases of the game, allowing for phase transitions and interruptions.
     /// </summary>
-    public class PhaseController : MonoBehaviour, IGameSystem
+    public class PhaseController : IGameSystem
     {
         #region Fields
 
