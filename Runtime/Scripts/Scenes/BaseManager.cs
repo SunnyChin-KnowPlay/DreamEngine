@@ -84,6 +84,7 @@ namespace MysticIsle.DreamEngine
 
         private float runningTime;
         private readonly List<IGameSystem> gameSystems = new();
+        private readonly List<IGameSystem> runningGameSystems = new();
         #endregion
 
         #region Properties
@@ -183,6 +184,13 @@ namespace MysticIsle.DreamEngine
         {
             float delta = Time.deltaTime;
             runningTime += delta;
+
+            runningGameSystems.Clear();
+            runningGameSystems.AddRange(gameSystems);
+            foreach (var system in runningGameSystems)
+            {
+                system.OnUpdate();
+            }
         }
 
         /// <summary>
