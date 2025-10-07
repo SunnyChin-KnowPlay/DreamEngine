@@ -128,8 +128,6 @@ namespace MysticIsle.DreamEngine
                     DestroyImmediate(gameObject);
                 }
             }
-
-            OnCreateGameSystems();
         }
 
         /// <summary>
@@ -198,10 +196,7 @@ namespace MysticIsle.DreamEngine
 
         #region Initialization
 
-        /// <summary>
-        /// 创建并初始化游戏系统（在 Awake 中调用）
-        /// </summary>
-        protected abstract void OnCreateGameSystems();
+
 
         /// <summary>
         /// 将已有的游戏系统（Game System）添加到管理器
@@ -224,20 +219,6 @@ namespace MysticIsle.DreamEngine
             return gameSystem;
         }
 
-        /// <summary>
-        /// 创建指定类型的游戏系统（Game System）
-        /// </summary>
-        /// <typeparam name="TGameSystem">游戏系统类型</typeparam>
-        /// <returns>创建的系统实例</returns>
-        protected TGameSystem CreateGameSystem<TGameSystem>() where TGameSystem : MonoBehaviour, IGameSystem
-        {
-            string managerName = string.Format("{0}", typeof(TGameSystem).Name);
-            GameObject managerObject = new(managerName);
-            managerObject.transform.SetParent(this.transform, false);
-            TGameSystem manager = managerObject.AddComponent<TGameSystem>();
-
-            return AddGameSystem(manager);
-        }
 
         #endregion
     }
