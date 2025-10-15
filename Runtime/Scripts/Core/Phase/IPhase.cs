@@ -1,6 +1,6 @@
 using Cysharp.Threading.Tasks;
 
-namespace MysticIsle.DreamEngine.Phases
+namespace MysticIsle.DreamEngine
 {
     public interface IPhase
     {

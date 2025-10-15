@@ -1,4 +1,3 @@
-using MysticIsle.DreamEngine.Phases;
 using MysticIsle.DreamEngine.UI;
 using System.Collections.Generic;
 using UnityEngine;
@@ -99,10 +98,6 @@ namespace MysticIsle.DreamEngine
         /// </summary>
         public UIManager UIManager { get; protected set; }
 
-        /// <summary>
-        /// 阶段管理器
-        /// </summary>
-        public PhaseController PhaseController { get; protected set; }
 
         #endregion
 

@@ -1,13 +1,12 @@
 using Cysharp.Threading.Tasks;
 using System.Collections.Generic;
-using UnityEngine;
 
-namespace MysticIsle.DreamEngine.Phases
+namespace MysticIsle.DreamEngine
 {
     /// <summary>
     /// Manages the phases of the game, allowing for phase transitions and interruptions.
     /// </summary>
-    public class PhaseController : IGameSystem
+    public class PhaseManager : Singleton<PhaseManager>
     {
         #region Fields
 
