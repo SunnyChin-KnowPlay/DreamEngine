@@ -22,10 +22,6 @@ namespace MysticIsle.DreamEngine
             DontDestroyOnLoad(gameObject);
         }
         #endregion
-
-        #region Gizmos
-        // 如有需要，可以在此处添加Gizmos绘制代码
-        #endregion
     }
 
 #if UNITY_EDITOR
@@ -43,7 +39,17 @@ namespace MysticIsle.DreamEngine
         private static void OnHierarchyItemGUI(int instanceID, Rect selectionRect)
         {
             GameObject obj = EditorUtility.InstanceIDToObject(instanceID) as GameObject;
-            if (obj != null && obj.GetComponent<DontDestroy>() != null)
+            if (obj == null)
+            {
+                return;
+            }
+
+            if ((obj.hideFlags & HideFlags.DontSaveInEditor) != 0)
+            {
+                return;
+            }
+
+            if (obj.GetComponent<DontDestroy>() != null)
             {
                 // 调整位置：增加右侧留白，避免太靠近右边的 > 按钮
                 Rect labelRect = new(selectionRect.x + selectionRect.width - 90, selectionRect.y, 90, selectionRect.height);

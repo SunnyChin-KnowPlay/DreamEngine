@@ -72,11 +72,6 @@ namespace MysticIsle.DreamEngine
             }
         }
 
-        /// <summary>
-        /// 是否为全局
-        /// </summary>
-        protected abstract bool IsGlobal { get; }
-
         #endregion
 
         #region Fields
@@ -97,8 +92,6 @@ namespace MysticIsle.DreamEngine
         /// UI管理器
         /// </summary>
         public UIManager UIManager { get; protected set; }
-
-
         #endregion
 
         #region MonoBehaviour Methods
@@ -114,10 +107,6 @@ namespace MysticIsle.DreamEngine
                 if (instance == null)
                 {
                     instance = this as TBaseManager;
-                    if (IsGlobal)
-                    {
-                        DontDestroyOnLoad(gameObject);
-                    }
                 }
                 else if (instance != this)
                 {
