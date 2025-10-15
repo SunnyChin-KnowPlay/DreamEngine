@@ -45,7 +45,7 @@ namespace MysticIsle.DreamEngine
         /// <summary>
         /// Updates the current phase each frame.
         /// </summary>
-        public virtual void OnUpdate()
+        public virtual void Update()
         {
             if (currentPhase == null && phaseQueue.Count > 0)
             {
