@@ -1,6 +1,7 @@
 using Cysharp.Threading.Tasks;
 using MysticIsle.DreamEngine.Core;
 using Sirenix.OdinInspector;
+using Sirenix.Utilities;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -208,7 +209,7 @@ namespace MysticIsle.DreamEngine.UI
         /// </summary>
         /// <param name="path">面板路径</param>
         /// <returns>面板对象</returns>
-        public WidgetPanel LoadPanel(string path)
+        private WidgetPanel LoadPanel(string path)
         {
             WidgetPanel panel = GetPanel(path);
             if (panel == null)
@@ -224,20 +225,6 @@ namespace MysticIsle.DreamEngine.UI
         }
 
         /// <summary>
-        /// 卸载指定面板
-        /// </summary>
-        /// <param name="path">面板路径</param>
-        public void UnloadPanel(string path)
-        {
-            WidgetPanel panel = GetPanel(path);
-            if (panel != null)
-            {
-                panels.Remove(path);
-                Helper.DestroyGameObject(panel.gameObject);
-            }
-        }
-
-        /// <summary>
         /// 卸载所有面板并清空面板栈
         /// </summary>
         public void UnloadAllPanels()
@@ -247,6 +234,7 @@ namespace MysticIsle.DreamEngine.UI
                 Helper.DestroyGameObject(kvp.Value.gameObject);
             }
             panels.Clear();
+            layerPanelStacks.Clear();
         }
 
         /// <summary>
@@ -407,6 +395,26 @@ namespace MysticIsle.DreamEngine.UI
                 }
             }
         }
+
+        public void UnloadPanels(int layerId)
+        {
+            if (layerPanelStacks.TryGetValue(layerId, out var list))
+            {
+                foreach (var panel in list)
+                {
+                    Helper.DestroyGameObject(panel.gameObject);
+
+                    string path = Control.GetPath(panel.GetType());
+                    if (!path.IsNullOrWhitespace())
+                    {
+                        panels.Remove(path);
+                    }
+                }
+                list.Clear();
+                layerPanelStacks.Remove(layerId);
+            }
+        }
+
 
         /// <summary>
         /// 从一个已经实例化的 WidgetPanel 上获取其对应 Control 类型声明的 OpenMode（若找不到则为 Show）
