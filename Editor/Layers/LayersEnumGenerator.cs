@@ -51,7 +51,7 @@ namespace MysticIsle.DreamEditor.Utilities
             layersTemplate.Initialize();
             string data = layersTemplate.TransformText();
 
-            string filePath = Path.Combine(Application.dataPath, $"{Application.productName}/Utilities/Layers/Layers.cs");
+            string filePath = Path.Combine(Application.dataPath, $"{Application.productName}/Core/Utilities/Layers/Layers.cs");
             filePath = filePath.Replace("\\", "/");
 
             string folderPath = System.IO.Path.GetDirectoryName(filePath);
