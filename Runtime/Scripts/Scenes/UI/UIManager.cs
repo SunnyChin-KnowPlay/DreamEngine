@@ -229,9 +229,14 @@ namespace MysticIsle.DreamEngine.UI
         /// </summary>
         public void UnloadAllPanels()
         {
-            foreach (var kvp in panels)
+            // 先将需要销毁的面板缓存到列表，避免遍历时修改原集合
+            var panelsToDestroy = new List<WidgetPanel>(panels.Values);
+            foreach (var panel in panelsToDestroy)
             {
-                Helper.DestroyGameObject(kvp.Value.gameObject);
+                if (panel != null)
+                {
+                    Helper.DestroyGameObject(panel.gameObject);
+                }
             }
             panels.Clear();
             layerPanelStacks.Clear();
