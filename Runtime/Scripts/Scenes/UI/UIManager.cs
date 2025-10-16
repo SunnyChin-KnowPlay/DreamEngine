@@ -240,7 +240,7 @@ namespace MysticIsle.DreamEngine.UI
         /// <summary>
         /// 卸载所有面板并清空面板栈
         /// </summary>
-        private void UnloadAllPanels()
+        public void UnloadAllPanels()
         {
             foreach (var kvp in panels)
             {

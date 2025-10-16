@@ -87,11 +87,6 @@ namespace MysticIsle.DreamEngine
         /// 运行时间
         /// </summary>
         public float RunningTime => runningTime;
-
-        /// <summary>
-        /// UI管理器
-        /// </summary>
-        public UIManager UIManager { get; protected set; }
         #endregion
 
         #region MonoBehaviour Methods
