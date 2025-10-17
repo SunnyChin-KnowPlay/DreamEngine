@@ -1,4 +1,5 @@
 using Cysharp.Threading.Tasks;
+using Sirenix.OdinInspector;
 using System.Collections.Generic;
 
 namespace MysticIsle.DreamEngine
@@ -13,11 +14,13 @@ namespace MysticIsle.DreamEngine
         /// <summary>
         /// 待执行阶段的队列。
         /// </summary>
+        [ShowInInspector]
         private readonly Queue<IPhase> phaseQueue = new();
 
         /// <summary>
         /// 当前正在运行的阶段。
         /// </summary>
+        [ShowInInspector]
         private IPhase currentPhase;
 
         #endregion

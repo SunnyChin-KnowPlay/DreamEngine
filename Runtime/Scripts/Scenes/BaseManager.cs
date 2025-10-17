@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace MysticIsle.DreamEngine
@@ -76,6 +77,7 @@ namespace MysticIsle.DreamEngine
         #region Fields
 
         private float runningTime;
+        [ShowInInspector]
         private readonly List<IGameService> services = new();
         private readonly List<IGameService> runningServices = new();
         #endregion
