@@ -4,19 +4,19 @@ using System.Collections.Generic;
 namespace MysticIsle.DreamEngine
 {
     /// <summary>
-    /// Manages the phases of the game, allowing for phase transitions and interruptions.
+    /// 阶段服务，负责按队列顺序执行游戏阶段并提供中断与切换功能。
     /// </summary>
-    public class PhaseManager : Singleton<PhaseManager>
+    public class PhaseService : IGameService
     {
         #region Fields
 
         /// <summary>
-        /// Queue to manage the phases.
+        /// 待执行阶段的队列。
         /// </summary>
         private readonly Queue<IPhase> phaseQueue = new();
 
         /// <summary>
-        /// The current phase being executed.
+        /// 当前正在运行的阶段。
         /// </summary>
         private IPhase currentPhase;
 
@@ -25,7 +25,7 @@ namespace MysticIsle.DreamEngine
         #region Properties
 
         /// <summary>
-        /// Gets the current phase.
+        /// 获取当前正在运行的阶段。
         /// </summary>
         public IPhase CurrentPhase => currentPhase;
 
@@ -34,25 +34,23 @@ namespace MysticIsle.DreamEngine
         #region Methods
 
         /// <summary>
-        /// Adds a new phase to the queue.
+        /// 加入一个新的阶段等待执行。
         /// </summary>
-        /// <param name="phase">The phase to enqueue.</param>
+        /// <param name="phase">阶段实例。</param>
         public void EnqueuePhase(IPhase phase)
         {
             phaseQueue.Enqueue(phase);
         }
 
         /// <summary>
-        /// Updates the current phase each frame.
+        /// 服务的每帧更新，负责取出并启动下一个阶段。
         /// </summary>
-        public virtual void Update()
+        public virtual void OnUpdate()
         {
             if (currentPhase == null && phaseQueue.Count > 0)
             {
-                // If there is no current phase and the queue has phases
-                currentPhase = phaseQueue.Dequeue(); // Get the next phase
+                currentPhase = phaseQueue.Dequeue();
 
-                // If the current phase exists, execute the update
                 if (currentPhase != null)
                 {
                     RunCurrentPhase().Forget();
@@ -61,17 +59,16 @@ namespace MysticIsle.DreamEngine
         }
 
         /// <summary>
-        /// Executes the current phase.
+        /// 异步执行当前阶段并在完成后释放引用。
         /// </summary>
         private async UniTask RunCurrentPhase()
         {
-            // Execute the phase's run logic
             await currentPhase.Run();
-            currentPhase = null; // Phase execution complete, clear the current phase
+            currentPhase = null;
         }
 
         /// <summary>
-        /// Allows external interruption of the current phase.
+        /// 中断当前阶段的执行。
         /// </summary>
         public void InterruptCurrentPhase()
         {
@@ -79,15 +76,14 @@ namespace MysticIsle.DreamEngine
         }
 
         /// <summary>
-        /// Switches to a new phase and adds it to the queue.
+        /// 立即中断当前阶段并切换到新的阶段。
         /// </summary>
-        /// <param name="newPhase">The new phase to switch to.</param>
+        /// <param name="newPhase">新的阶段实例。</param>
         public void SwitchPhase(IPhase newPhase)
         {
             InterruptCurrentPhase();
-            EnqueuePhase(newPhase);  // Add the new phase to the queue
+            EnqueuePhase(newPhase);
         }
-
         #endregion
     }
 }
