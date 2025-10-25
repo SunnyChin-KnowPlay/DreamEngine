@@ -128,8 +128,8 @@ namespace MysticIsle.DreamEngine.UI
 
         public bool Draggable { get; set; } = false; // Indicates if the widget is draggable
 
-        [Tooltip("是否把事件广播给所有下面的命中对象；否则只转发给第一个下层目标")]
-        public bool propagateToAllHits = false;
+        [Tooltip("为 true 时将指针事件转发给下一个命中对象；为 false 时不再向下转发")]
+        public bool forwardPointerToNextTarget = false;
 
         public Canvas Canvas => GetComponentInParent<Canvas>();
         public CanvasGroup CanvasGroup => canvasGroup; // CanvasGroup for managing UI interactions
@@ -667,59 +667,58 @@ namespace MysticIsle.DreamEngine.UI
 
         // --------- 辅助：转发实现 ----------
         private void Propagate<T>(PointerEventData originalEventData, ExecuteEvents.EventFunction<T> eventFunc)
-            where T : IEventSystemHandler
+        where T : IEventSystemHandler
         {
-            if (EventSystem.current == null || originalEventData == null) return;
+            // 🚫 不需要传递事件时，直接返回，不做任何额外操作
+            if (!forwardPointerToNextTarget) return;
 
-            // 准备用于 Raycast 的 PointerEventData（不改动 originalEventData）
+            if (EventSystem.current == null || originalEventData == null)
+                return;
+
+            // ✅ 准备用于 Raycast 的 PointerEventData
             var pointerData = new PointerEventData(EventSystem.current)
             {
                 position = originalEventData.position,
                 button = originalEventData.button,
                 pointerId = originalEventData.pointerId,
                 clickCount = originalEventData.clickCount,
-                // 如需可继续拷贝 pressPosition, pointerPressRaycast 等字段
             };
 
-            List<RaycastResult> results = new List<RaycastResult>();
+            // ✅ 执行 RaycastAll（仅在需要传递时）
+            List<RaycastResult> results = new();
             EventSystem.current.RaycastAll(pointerData, results);
 
             bool passedSelf = false;
 
             foreach (var r in results)
             {
-                // 找到自己之后，才开始转发下面的项
                 if (!passedSelf)
                 {
                     if (IsSelfOrChild(r.gameObject))
                     {
                         passedSelf = true;
-                        continue; // 从下一项开始转发
+                        continue; // 从自己后面的开始
                     }
                     else
                     {
-                        // 还没遇到自己（通常最上面会是自己），跳过
                         continue;
                     }
                 }
 
                 if (r.gameObject == null) continue;
 
-                // 为每个接收者创建一个新的事件数据副本，避免污染原始数据
+                // ✅ 创建新的 PointerEventData（防止污染原始数据）
                 var forwardedData = new PointerEventData(EventSystem.current)
                 {
                     position = originalEventData.position,
                     button = originalEventData.button,
                     pointerId = originalEventData.pointerId,
                     clickCount = originalEventData.clickCount,
-                    // 需要时可复制更多字段
                 };
 
-                // 执行事件（只对命中对象尝试执行）
+                // ✅ 向下一个命中对象转发事件
                 ExecuteEvents.Execute(r.gameObject, forwardedData, eventFunc);
-
-                if (!propagateToAllHits)
-                    break; // 只转发给第一个下层目标
+                break;
             }
         }
 
