@@ -128,6 +128,18 @@ namespace MysticIsle.DreamEngine.UI
 
         public bool Draggable { get; set; } = false; // Indicates if the widget is draggable
 
+        [SerializeField]
+        private bool propagatePointerEvents = true; // Whether pointer events continue bubbling
+
+        /// <summary>
+        /// 控制指针事件是否继续向下传递
+        /// </summary>
+        public bool PropagatePointerEvents
+        {
+            get => propagatePointerEvents;
+            set => propagatePointerEvents = value;
+        }
+
         public Canvas Canvas => GetComponentInParent<Canvas>();
         public CanvasGroup CanvasGroup => canvasGroup; // CanvasGroup for managing UI interactions
         private CanvasGroup canvasGroup;
@@ -629,6 +641,8 @@ namespace MysticIsle.DreamEngine.UI
             {
                 InvokeOnClick(this);
             }
+
+            MaybeConsumePointerEvent(eventData);
         }
 
         /// <summary>
@@ -640,6 +654,7 @@ namespace MysticIsle.DreamEngine.UI
             // Only handle left button and when interactable/raycastable
             if (!IsEligibleForPointer(true, eventData)) return;
             OnPointerDownEvent?.Invoke(this);
+            MaybeConsumePointerEvent(eventData);
         }
 
         /// <summary>
@@ -651,6 +666,7 @@ namespace MysticIsle.DreamEngine.UI
             // Only handle left button and when interactable/raycastable
             if (!IsEligibleForPointer(true, eventData)) return;
             OnPointerUpEvent?.Invoke(this);
+            MaybeConsumePointerEvent(eventData);
         }
 
         protected bool IsEligibleForPointer(bool requireLeftButton, PointerEventData eventData)
@@ -679,6 +695,14 @@ namespace MysticIsle.DreamEngine.UI
             }
             ListPool<CanvasGroup>.Release(groups);
             return allow;
+        }
+
+        private void MaybeConsumePointerEvent(PointerEventData eventData)
+        {
+            if (!propagatePointerEvents && eventData != null)
+            {
+                eventData.Use();
+            }
         }
         #endregion
 
