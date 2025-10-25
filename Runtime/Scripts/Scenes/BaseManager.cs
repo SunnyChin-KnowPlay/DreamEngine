@@ -1,5 +1,5 @@
-using MysticIsle.DreamEngine.UI;
 using System.Collections.Generic;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace MysticIsle.DreamEngine
@@ -77,8 +77,9 @@ namespace MysticIsle.DreamEngine
         #region Fields
 
         private float runningTime;
-        private readonly List<IGameSystem> gameSystems = new();
-        private readonly List<IGameSystem> runningGameSystems = new();
+        [ShowInInspector]
+        private readonly List<IGameService> services = new();
+        private readonly List<IGameService> runningServices = new();
         #endregion
 
         #region Properties
@@ -87,11 +88,6 @@ namespace MysticIsle.DreamEngine
         /// 运行时间
         /// </summary>
         public float RunningTime => runningTime;
-
-        /// <summary>
-        /// UI管理器
-        /// </summary>
-        public UIManager UIManager { get; protected set; }
         #endregion
 
         #region MonoBehaviour Methods
@@ -128,7 +124,7 @@ namespace MysticIsle.DreamEngine
                 }
             }
 
-            gameSystems.Clear();
+            services.Clear();
         }
 
         /// <summary>
@@ -169,11 +165,11 @@ namespace MysticIsle.DreamEngine
             float delta = Time.deltaTime;
             runningTime += delta;
 
-            runningGameSystems.Clear();
-            runningGameSystems.AddRange(gameSystems);
-            foreach (var system in runningGameSystems)
+            runningServices.Clear();
+            runningServices.AddRange(services);
+            foreach (var service in runningServices)
             {
-                system.OnUpdate();
+                service.OnUpdate();
             }
         }
 
@@ -191,24 +187,24 @@ namespace MysticIsle.DreamEngine
 
 
         /// <summary>
-        /// 将已有的游戏系统（Game System）添加到管理器
+        /// 将已有的游戏服务（Game Service）添加到管理器
         /// </summary>
-        /// <typeparam name="TGameSystem">游戏系统类型</typeparam>
-        /// <param name="gameSystem">游戏系统实例</param>
+        /// <typeparam name="TGameService">游戏服务类型</typeparam>
+        /// <param name="gameService">游戏服务实例</param>
         /// <returns>添加后的系统实例</returns>
-        protected TGameSystem AddGameSystem<TGameSystem>(TGameSystem gameSystem) where TGameSystem : class, IGameSystem
+        protected TGameService AddGameService<TGameService>(TGameService gameService) where TGameService : class, IGameService
         {
-            if (gameSystem == null)
+            if (gameService == null)
             {
                 return null;
             }
 
-            if (!gameSystems.Contains(gameSystem))
+            if (!services.Contains(gameService))
             {
-                gameSystems.Add(gameSystem);
+                services.Add(gameService);
             }
 
-            return gameSystem;
+            return gameService;
         }
 
 

@@ -3,25 +3,26 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
+using UnityEngine.ResourceManagement.ResourceProviders;
 
 namespace MysticIsle.DreamEngine
 {
     /// <summary>
-    /// AssetManager is a static class that provides methods to load and manage assets using Unity Addressables.
+    /// AssetManager 是基于 Unity Addressables 的资源加载与管理工具类（含场景加载）。
     /// </summary>
     public static class AssetManager
     {
-        // 用于跟踪已加载资源的字典，键是路径，值是对应的句柄
+        // 用于跟踪已加载资源的字典，键为路径，值为对应的句柄
         private static readonly Dictionary<string, AsyncOperationHandle> _loadedAssets = new();
 
         #region Load Asset
 
         /// <summary>
-        /// Loads an asset synchronously.
+        /// 同步加载资源。
         /// </summary>
-        /// <typeparam name="T">The type of the asset to load.</typeparam>
-        /// <param name="path">The path of the asset to load.</param>
-        /// <returns>The loaded asset, or null if the path is invalid or the load fails.</returns>
+        /// <typeparam name="T">要加载的资源类型。</typeparam>
+        /// <param name="path">资源路径。</param>
+        /// <returns>加载成功返回资源实例；若路径无效或加载失败返回 null。</returns>
         public static T LoadAsset<T>(string path) where T : Object
         {
             if (string.IsNullOrEmpty(path))
@@ -29,7 +30,7 @@ namespace MysticIsle.DreamEngine
 
             path = path.Replace("\\", "/");
 
-            // 如果已经加载过相同路径的资源，直接使用已存在的 handle
+            // 如果已加载过相同路径的资源，直接复用现有句柄
             if (_loadedAssets.TryGetValue(path, out var existingHandle))
             {
                 T existingAsset = existingHandle.Result as T;
@@ -52,11 +53,11 @@ namespace MysticIsle.DreamEngine
         }
 
         /// <summary>
-        /// Loads an asset asynchronously.
+        /// 异步加载资源。
         /// </summary>
-        /// <typeparam name="T">The type of the asset to load.</typeparam>
-        /// <param name="path">The path of the asset to load.</param>
-        /// <returns>A Task representing the asynchronous load operation. The Result property contains the loaded asset.</returns>
+        /// <typeparam name="T">要加载的资源类型。</typeparam>
+        /// <param name="path">资源路径。</param>
+        /// <returns>异步任务，完成时返回加载到的资源实例。</returns>
         public static async Task<T> LoadAssetAsync<T>(string path) where T : Object
         {
             if (string.IsNullOrEmpty(path))
@@ -64,7 +65,7 @@ namespace MysticIsle.DreamEngine
 
             path = path.Replace("\\", "/");
 
-            // 如果已经加载过相同路径的资源，直接使用已存在的 handle
+            // 如果已加载过相同路径的资源，直接复用现有句柄
             if (_loadedAssets.TryGetValue(path, out var existingHandle))
             {
                 T existingAsset = existingHandle.Result as T;
@@ -90,16 +91,16 @@ namespace MysticIsle.DreamEngine
 
         #region Unload Asset
         /// <summary>
-        /// Releases an asset to free up memory.
+        /// 释放资源以回收内存。
         /// </summary>
-        /// <typeparam name="T">The type of the asset to release.</typeparam>
-        /// <param name="asset">The asset to release.</param>
+        /// <typeparam name="T">要释放的资源类型。</typeparam>
+        /// <param name="asset">要释放的资源实例。</param>
         public static void ReleaseAsset<T>(T asset) where T : Object
         {
             if (asset == null)
                 return;
 
-            // 创建一个待删除的键列表
+            // 创建待删除键列表，避免遍历时修改字典
             var keysToRemove = new List<string>();
 
             foreach (var kvp in _loadedAssets)
@@ -111,7 +112,7 @@ namespace MysticIsle.DreamEngine
                 }
             }
 
-            // 在循环结束后一次性移除所有待删除的键
+            // 统一移除待删除键
             foreach (var key in keysToRemove)
             {
                 _loadedAssets.Remove(key);
@@ -119,7 +120,7 @@ namespace MysticIsle.DreamEngine
         }
 
         /// <summary>
-        /// Releases all loaded assets to free up memory.
+        /// 释放所有已加载资源。
         /// </summary>
         public static void ReleaseAll()
         {
@@ -135,13 +136,89 @@ namespace MysticIsle.DreamEngine
 
         #endregion
 
+        #region Load Scene
+
+        /// <summary>
+        /// 异步加载场景。
+        /// </summary>
+        /// <param name="scenePath">场景路径（Addressables 键或地址）。</param>
+        /// <param name="activateOnLoad">加载完成后是否立即激活场景。</param>
+        /// <param name="loadSceneMode">场景加载模式。</param>
+        /// <returns>异步场景加载句柄。</returns>
+        public static async Task<AsyncOperationHandle<SceneInstance>> LoadSceneAsync(string scenePath, bool activateOnLoad = true, UnityEngine.SceneManagement.LoadSceneMode loadSceneMode = UnityEngine.SceneManagement.LoadSceneMode.Single)
+        {
+            if (string.IsNullOrEmpty(scenePath))
+                return default;
+
+            scenePath = scenePath.Replace("\\", "/");
+
+            var handle = Addressables.LoadSceneAsync(scenePath, loadSceneMode, activateOnLoad);
+            await handle.Task;
+
+            if (handle.Status == AsyncOperationStatus.Succeeded)
+            {
+                _loadedAssets[scenePath] = handle;
+            }
+
+            return handle;
+        }
+
+        /// <summary>
+        /// 同步加载场景。
+        /// </summary>
+        /// <param name="scenePath">场景路径（Addressables 键或地址）。</param>
+        /// <param name="activateOnLoad">加载完成后是否立即激活场景。</param>
+        /// <param name="loadSceneMode">场景加载模式。</param>
+        /// <returns>场景加载句柄。</returns>
+        public static AsyncOperationHandle<SceneInstance> LoadScene(string scenePath, bool activateOnLoad = true, UnityEngine.SceneManagement.LoadSceneMode loadSceneMode = UnityEngine.SceneManagement.LoadSceneMode.Single)
+        {
+            if (string.IsNullOrEmpty(scenePath))
+                return default;
+
+            scenePath = scenePath.Replace("\\", "/");
+
+            var handle = Addressables.LoadSceneAsync(scenePath, loadSceneMode, activateOnLoad);
+            handle.WaitForCompletion();
+
+            if (handle.Status == AsyncOperationStatus.Succeeded)
+            {
+                _loadedAssets[scenePath] = handle;
+            }
+
+            return handle;
+        }
+
+        /// <summary>
+        /// 卸载场景。
+        /// </summary>
+        /// <param name="scenePath">场景路径（Addressables 键或地址）。</param>
+        /// <returns>异步卸载句柄。</returns>
+        public static AsyncOperationHandle UnloadScene(string scenePath)
+        {
+            if (string.IsNullOrEmpty(scenePath))
+                return default;
+
+            scenePath = scenePath.Replace("\\", "/");
+
+            if (_loadedAssets.TryGetValue(scenePath, out var handle))
+            {
+                var unloadHandle = Addressables.UnloadSceneAsync(handle);
+                _loadedAssets.Remove(scenePath);
+                return unloadHandle;
+            }
+
+            return default;
+        }
+
+        #endregion
+
         #region Check Asset
 
         /// <summary>
-        /// Checks if an asset is available at the given path.
+        /// 检查指定路径的资源是否可用。
         /// </summary>
-        /// <param name="path">The path of the asset to check.</param>
-        /// <returns>True if the asset exists, false otherwise.</returns>
+        /// <param name="path">资源路径。</param>
+        /// <returns>若资源存在返回 true，否则返回 false。</returns>
         public static async Task<bool> IsAssetAvailableAsync(string path)
         {
             if (string.IsNullOrEmpty(path))
