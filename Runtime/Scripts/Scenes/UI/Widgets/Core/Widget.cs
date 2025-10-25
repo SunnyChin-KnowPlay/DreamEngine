@@ -128,17 +128,8 @@ namespace MysticIsle.DreamEngine.UI
 
         public bool Draggable { get; set; } = false; // Indicates if the widget is draggable
 
-        [SerializeField]
-        private bool propagatePointerEvents = false; // Whether pointer events continue bubbling
-
-        /// <summary>
-        /// 控制指针事件是否继续向下传递
-        /// </summary>
-        public bool PropagatePointerEvents
-        {
-            get => propagatePointerEvents;
-            set => propagatePointerEvents = value;
-        }
+        [Tooltip("是否把事件广播给所有下面的命中对象；否则只转发给第一个下层目标")]
+        public bool propagateToAllHits = false;
 
         public Canvas Canvas => GetComponentInParent<Canvas>();
         public CanvasGroup CanvasGroup => canvasGroup; // CanvasGroup for managing UI interactions
@@ -642,7 +633,8 @@ namespace MysticIsle.DreamEngine.UI
                 InvokeOnClick(this);
             }
 
-            MaybeConsumePointerEvent(eventData);
+            // --- 转发事件给下层 ---
+            Propagate(eventData, ExecuteEvents.pointerClickHandler);
         }
 
         /// <summary>
@@ -654,7 +646,9 @@ namespace MysticIsle.DreamEngine.UI
             // Only handle left button and when interactable/raycastable
             if (!IsEligibleForPointer(true, eventData)) return;
             OnPointerDownEvent?.Invoke(this);
-            MaybeConsumePointerEvent(eventData);
+
+            // --- 转发事件给下层 ---
+            Propagate(eventData, ExecuteEvents.pointerDownHandler);
         }
 
         /// <summary>
@@ -666,7 +660,75 @@ namespace MysticIsle.DreamEngine.UI
             // Only handle left button and when interactable/raycastable
             if (!IsEligibleForPointer(true, eventData)) return;
             OnPointerUpEvent?.Invoke(this);
-            MaybeConsumePointerEvent(eventData);
+
+            // --- 转发事件给下层 ---
+            Propagate(eventData, ExecuteEvents.pointerUpHandler);
+        }
+
+        // --------- 辅助：转发实现 ----------
+        private void Propagate<T>(PointerEventData originalEventData, ExecuteEvents.EventFunction<T> eventFunc)
+            where T : IEventSystemHandler
+        {
+            if (EventSystem.current == null || originalEventData == null) return;
+
+            // 准备用于 Raycast 的 PointerEventData（不改动 originalEventData）
+            var pointerData = new PointerEventData(EventSystem.current)
+            {
+                position = originalEventData.position,
+                button = originalEventData.button,
+                pointerId = originalEventData.pointerId,
+                clickCount = originalEventData.clickCount,
+                // 如需可继续拷贝 pressPosition, pointerPressRaycast 等字段
+            };
+
+            List<RaycastResult> results = new List<RaycastResult>();
+            EventSystem.current.RaycastAll(pointerData, results);
+
+            bool passedSelf = false;
+
+            foreach (var r in results)
+            {
+                // 找到自己之后，才开始转发下面的项
+                if (!passedSelf)
+                {
+                    if (IsSelfOrChild(r.gameObject))
+                    {
+                        passedSelf = true;
+                        continue; // 从下一项开始转发
+                    }
+                    else
+                    {
+                        // 还没遇到自己（通常最上面会是自己），跳过
+                        continue;
+                    }
+                }
+
+                if (r.gameObject == null) continue;
+
+                // 为每个接收者创建一个新的事件数据副本，避免污染原始数据
+                var forwardedData = new PointerEventData(EventSystem.current)
+                {
+                    position = originalEventData.position,
+                    button = originalEventData.button,
+                    pointerId = originalEventData.pointerId,
+                    clickCount = originalEventData.clickCount,
+                    // 需要时可复制更多字段
+                };
+
+                // 执行事件（只对命中对象尝试执行）
+                ExecuteEvents.Execute(r.gameObject, forwardedData, eventFunc);
+
+                if (!propagateToAllHits)
+                    break; // 只转发给第一个下层目标
+            }
+        }
+
+        // 判断命中对象是否是自己或子对象（用于跳过自己）
+        private bool IsSelfOrChild(GameObject go)
+        {
+            if (go == null) return false;
+            if (go == this.gameObject) return true;
+            return go.transform.IsChildOf(this.transform);
         }
 
         protected bool IsEligibleForPointer(bool requireLeftButton, PointerEventData eventData)
@@ -697,19 +759,7 @@ namespace MysticIsle.DreamEngine.UI
             return allow;
         }
 
-        private void MaybeConsumePointerEvent(PointerEventData eventData)
-        {
-            if (eventData == null)
-            {
-                return;
-            }
 
-            if (propagatePointerEvents)
-            {
-                eventData.Reset();
-                return;
-            }
-        }
         #endregion
 
         #region Drag and Drop
