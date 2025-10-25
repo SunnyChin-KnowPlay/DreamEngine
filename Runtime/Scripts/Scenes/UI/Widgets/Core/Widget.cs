@@ -718,7 +718,7 @@ namespace MysticIsle.DreamEngine.UI
 
                 // ✅ 向下一个命中对象转发事件
                 ExecuteEvents.Execute(r.gameObject, forwardedData, eventFunc);
-                break;
+                // break;
             }
         }
 
