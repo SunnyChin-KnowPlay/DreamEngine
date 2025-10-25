@@ -129,7 +129,7 @@ namespace MysticIsle.DreamEngine.UI
         public bool Draggable { get; set; } = false; // Indicates if the widget is draggable
 
         [SerializeField]
-        private bool propagatePointerEvents = true; // Whether pointer events continue bubbling
+        private bool propagatePointerEvents = false; // Whether pointer events continue bubbling
 
         /// <summary>
         /// 控制指针事件是否继续向下传递
@@ -699,9 +699,15 @@ namespace MysticIsle.DreamEngine.UI
 
         private void MaybeConsumePointerEvent(PointerEventData eventData)
         {
-            if (!propagatePointerEvents && eventData != null)
+            if (eventData == null)
             {
-                eventData.Use();
+                return;
+            }
+
+            if (propagatePointerEvents)
+            {
+                eventData.Reset();
+                return;
             }
         }
         #endregion
