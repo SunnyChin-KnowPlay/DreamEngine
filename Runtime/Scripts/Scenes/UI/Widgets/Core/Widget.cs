@@ -666,59 +666,65 @@ namespace MysticIsle.DreamEngine.UI
         }
 
         // --------- 辅助：转发实现 ----------
-        private void Propagate<T>(PointerEventData originalEventData, ExecuteEvents.EventFunction<T> eventFunc)
+        private void Propagate<T>(PointerEventData originalEventData, ExecuteEvents.EventFunction<T> eventFunc, bool onlyForwardFirst = true)
         where T : IEventSystemHandler
         {
-            // 🚫 不需要传递事件时，直接返回，不做任何额外操作
             if (!forwardPointerToNextTarget) return;
+            if (EventSystem.current == null || originalEventData == null) return;
 
-            if (EventSystem.current == null || originalEventData == null)
-                return;
-
-            // ✅ 准备用于 Raycast 的 PointerEventData
-            var pointerData = new PointerEventData(EventSystem.current)
+            // Raycast 用的临时数据（不要修改原始 originalEventData）
+            var raycastData = new PointerEventData(EventSystem.current)
             {
                 position = originalEventData.position,
-                button = originalEventData.button,
                 pointerId = originalEventData.pointerId,
-                clickCount = originalEventData.clickCount,
+                // 可以根据需要复制更多字段用于更准确的 raycast（比如 pressPosition 不必要）
             };
 
-            // ✅ 执行 RaycastAll（仅在需要传递时）
-            List<RaycastResult> results = new();
-            EventSystem.current.RaycastAll(pointerData, results);
+            var results = new List<RaycastResult>();
+            EventSystem.current.RaycastAll(raycastData, results);
+            if (results.Count == 0) return;
 
-            bool passedSelf = false;
-
-            foreach (var r in results)
+            // 先定位自己在命中列表中的索引 —— 更稳妥
+            int selfIndex = results.FindIndex(r => r.gameObject != null && IsSelfOrChild(r.gameObject));
+            if (selfIndex < 0)
             {
-                if (!passedSelf)
-                {
-                    if (IsSelfOrChild(r.gameObject))
-                    {
-                        passedSelf = true;
-                        continue; // 从自己后面的开始
-                    }
-                    else
-                    {
-                        continue;
-                    }
-                }
+                // 自己不在命中列表，按需求可:
+                // - 不转发（保持原逻辑），或
+                // - 从第一个开始转发（但通常不希望这样）
+                return;
+            }
 
-                if (r.gameObject == null) continue;
+            // 从自己后面的命中项开始转发
+            for (int i = selfIndex + 1; i < results.Count; i++)
+            {
+                var hit = results[i];
+                var target = hit.gameObject;
+                if (target == null) continue;
 
-                // ✅ 创建新的 PointerEventData（防止污染原始数据）
-                var forwardedData = new PointerEventData(EventSystem.current)
+                // 创建转发用的 PointerEventData（复制必要字段）
+                var forwarded = new PointerEventData(EventSystem.current)
                 {
                     position = originalEventData.position,
-                    button = originalEventData.button,
+                    delta = originalEventData.delta,
+                    pressPosition = originalEventData.pressPosition,
                     pointerId = originalEventData.pointerId,
+                    button = originalEventData.button,
                     clickCount = originalEventData.clickCount,
+                    // 复制更多你觉得“必要”的字段（可选）
                 };
 
-                // ✅ 向下一个命中对象转发事件
-                ExecuteEvents.Execute(r.gameObject, forwardedData, eventFunc);
-                // break;
+                // **关键**：把 RaycastResult 回填，便于 handler 使用 e.g. eventData.pointerCurrentRaycast.gameObject
+                forwarded.pointerCurrentRaycast = hit;
+                forwarded.pointerPressRaycast = hit;
+                forwarded.pointerEnter = target;
+
+                // 推荐使用 ExecuteHierarchy，这样父对象上的 handler 也能被调用
+                ExecuteEvents.ExecuteHierarchy(target, forwarded, eventFunc);
+
+                // 如果你想“把一个真实点击”转发成目标也经历 down->up->click，可以按下面注释的方式模拟：
+                // SimulateClickSequence(target, forwarded);
+
+                if (onlyForwardFirst) break; // 如果只希望转发到第一个“在自己之后”的目标，打开这个
             }
         }
 
