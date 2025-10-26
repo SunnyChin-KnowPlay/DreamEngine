@@ -670,17 +670,43 @@ namespace MysticIsle.DreamEngine.UI
                 return;
             }
 
-            // 模拟“穿透”事件：继续派发射线到下层对象
-            var results = new System.Collections.Generic.List<RaycastResult>();
-            EventSystem.current.RaycastAll(sourceEventData, results);
-
-            foreach (var r in results)
+            var eventSystem = EventSystem.current;
+            if (eventSystem == null)
             {
-                if (r.gameObject == gameObject)
-                    continue; // 跳过自己
+                return;
+            }
 
-                // 派发给下层对象
-                ExecuteEvents.Execute(r.gameObject, sourceEventData, handler);
+            var raycastResults = ListPool<RaycastResult>.Get();
+            var processedTargets = new HashSet<GameObject> { gameObject };
+
+            try
+            {
+                eventSystem.RaycastAll(sourceEventData, raycastResults);
+
+                int startIndex = FindSelfHierarchyIndex(raycastResults);
+                if (startIndex == -1)
+                {
+                    startIndex = FindReferenceIndex(raycastResults, sourceEventData);
+                }
+
+                for (int i = startIndex + 1; i < raycastResults.Count; i++)
+                {
+                    var target = raycastResults[i].gameObject;
+                    if (target == null || IsSelfOrChild(target))
+                    {
+                        continue;
+                    }
+
+                    ExecuteOnTargetAndParents(target.transform, sourceEventData, handler, processedTargets);
+                }
+
+                ExecuteOnTargetAndParents(this.transform.parent, sourceEventData, handler, processedTargets);
+            }
+            finally
+            {
+                processedTargets.Clear();
+                raycastResults.Clear();
+                ListPool<RaycastResult>.Release(raycastResults);
             }
         }
 
@@ -725,6 +751,27 @@ namespace MysticIsle.DreamEngine.UI
             }
 
             return -1;
+        }
+
+        private void ExecuteOnTargetAndParents<T>(Transform start, PointerEventData eventData, ExecuteEvents.EventFunction<T> handler, HashSet<GameObject> processedTargets)
+            where T : IEventSystemHandler
+        {
+            if (start == null)
+            {
+                return;
+            }
+
+            var current = start;
+            while (current != null)
+            {
+                var currentObject = current.gameObject;
+                if (processedTargets.Add(currentObject))
+                {
+                    ExecuteEvents.Execute(currentObject, eventData, handler);
+                }
+
+                current = current.parent;
+            }
         }
 
         protected bool IsEligibleForPointer(bool requireLeftButton, PointerEventData eventData)
@@ -922,6 +969,9 @@ namespace MysticIsle.DreamEngine.UI
             }
             return Vector2.zero;
         }
+
+
+
 
         #endregion
     }
