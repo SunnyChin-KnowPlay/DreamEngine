@@ -23,13 +23,11 @@ namespace MysticIsle.DreamEngine.UI
         // Cache to avoid GC allocs when walking CanvasGroup hierarchy
         private static readonly List<CanvasGroup> s_CanvasGroupCache = new();
         // 封装一个 WidgetEvent，继承自 UnityEvent<Widget>
-        [System.Serializable]
         public class WidgetEvent : UnityEvent<Widget> { }
 
         // 封装一个 WidgetDropEvent，继承自 UnityEvent<Widget, Widget>
         [System.Serializable]
         public class WidgetDropEvent : UnityEvent<Widget, Widget> { }
-
         #region Event
         [HideInInspector]
         public WidgetEvent OnClick = new(); // Called on single click
@@ -128,8 +126,8 @@ namespace MysticIsle.DreamEngine.UI
 
         public bool Draggable { get; set; } = false; // Indicates if the widget is draggable
 
-        [Tooltip("为 true 时将指针事件转发给下一个命中对象；为 false 时不再向下转发")]
-        public bool forwardPointerToNextTarget = false;
+        [Tooltip("为 true 时继续向下传递指针事件；为 false 时仅由本 Widget 处理")]
+        public bool propagatePointerEvents = false;
 
         public Canvas Canvas => GetComponentInParent<Canvas>();
         public CanvasGroup CanvasGroup => canvasGroup; // CanvasGroup for managing UI interactions
@@ -602,6 +600,7 @@ namespace MysticIsle.DreamEngine.UI
         public virtual void OnPointerEnter(PointerEventData eventData)
         {
             this.IsFocused = true;
+            ForwardPointerEvent(eventData, ExecuteEvents.pointerEnterHandler);
         }
 
         /// <summary>
@@ -611,6 +610,7 @@ namespace MysticIsle.DreamEngine.UI
         public virtual void OnPointerExit(PointerEventData eventData)
         {
             this.IsFocused = false;
+            ForwardPointerEvent(eventData, ExecuteEvents.pointerExitHandler);
         }
 
         /// <summary>
@@ -633,8 +633,7 @@ namespace MysticIsle.DreamEngine.UI
                 InvokeOnClick(this);
             }
 
-            // --- 转发事件给下层 ---
-            Propagate(eventData, ExecuteEvents.pointerClickHandler);
+            ForwardPointerEvent(eventData, ExecuteEvents.pointerClickHandler);
         }
 
         /// <summary>
@@ -647,8 +646,7 @@ namespace MysticIsle.DreamEngine.UI
             if (!IsEligibleForPointer(true, eventData)) return;
             OnPointerDownEvent?.Invoke(this);
 
-            // --- 转发事件给下层 ---
-            Propagate(eventData, ExecuteEvents.pointerDownHandler);
+            ForwardPointerEvent(eventData, ExecuteEvents.pointerDownHandler);
         }
 
         /// <summary>
@@ -661,70 +659,28 @@ namespace MysticIsle.DreamEngine.UI
             if (!IsEligibleForPointer(true, eventData)) return;
             OnPointerUpEvent?.Invoke(this);
 
-            // --- 转发事件给下层 ---
-            Propagate(eventData, ExecuteEvents.pointerUpHandler);
+            ForwardPointerEvent(eventData, ExecuteEvents.pointerUpHandler);
         }
 
-        // --------- 辅助：转发实现 ----------
-        private void Propagate<T>(PointerEventData originalEventData, ExecuteEvents.EventFunction<T> eventFunc, bool onlyForwardFirst = true)
-        where T : IEventSystemHandler
+        private void ForwardPointerEvent<T>(PointerEventData sourceEventData, ExecuteEvents.EventFunction<T> handler)
+            where T : IEventSystemHandler
         {
-            if (!forwardPointerToNextTarget) return;
-            if (EventSystem.current == null || originalEventData == null) return;
-
-            // Raycast 用的临时数据（不要修改原始 originalEventData）
-            var raycastData = new PointerEventData(EventSystem.current)
+            if (!propagatePointerEvents || sourceEventData == null)
             {
-                position = originalEventData.position,
-                pointerId = originalEventData.pointerId,
-                // 可以根据需要复制更多字段用于更准确的 raycast（比如 pressPosition 不必要）
-            };
-
-            var results = new List<RaycastResult>();
-            EventSystem.current.RaycastAll(raycastData, results);
-            if (results.Count == 0) return;
-
-            // 先定位自己在命中列表中的索引 —— 更稳妥
-            int selfIndex = results.FindIndex(r => r.gameObject != null && IsSelfOrChild(r.gameObject));
-            if (selfIndex < 0)
-            {
-                // 自己不在命中列表，按需求可:
-                // - 不转发（保持原逻辑），或
-                // - 从第一个开始转发（但通常不希望这样）
                 return;
             }
 
-            // 从自己后面的命中项开始转发
-            for (int i = selfIndex + 1; i < results.Count; i++)
+            // 模拟“穿透”事件：继续派发射线到下层对象
+            var results = new System.Collections.Generic.List<RaycastResult>();
+            EventSystem.current.RaycastAll(sourceEventData, results);
+
+            foreach (var r in results)
             {
-                var hit = results[i];
-                var target = hit.gameObject;
-                if (target == null) continue;
+                if (r.gameObject == gameObject)
+                    continue; // 跳过自己
 
-                // 创建转发用的 PointerEventData（复制必要字段）
-                var forwarded = new PointerEventData(EventSystem.current)
-                {
-                    position = originalEventData.position,
-                    delta = originalEventData.delta,
-                    pressPosition = originalEventData.pressPosition,
-                    pointerId = originalEventData.pointerId,
-                    button = originalEventData.button,
-                    clickCount = originalEventData.clickCount,
-                    // 复制更多你觉得“必要”的字段（可选）
-                };
-
-                // **关键**：把 RaycastResult 回填，便于 handler 使用 e.g. eventData.pointerCurrentRaycast.gameObject
-                forwarded.pointerCurrentRaycast = hit;
-                forwarded.pointerPressRaycast = hit;
-                forwarded.pointerEnter = target;
-
-                // 推荐使用 ExecuteHierarchy，这样父对象上的 handler 也能被调用
-                ExecuteEvents.ExecuteHierarchy(target, forwarded, eventFunc);
-
-                // 如果你想“把一个真实点击”转发成目标也经历 down->up->click，可以按下面注释的方式模拟：
-                // SimulateClickSequence(target, forwarded);
-
-                if (onlyForwardFirst) break; // 如果只希望转发到第一个“在自己之后”的目标，打开这个
+                // 派发给下层对象
+                ExecuteEvents.Execute(r.gameObject, sourceEventData, handler);
             }
         }
 
@@ -734,6 +690,41 @@ namespace MysticIsle.DreamEngine.UI
             if (go == null) return false;
             if (go == this.gameObject) return true;
             return go.transform.IsChildOf(this.transform);
+        }
+
+        private int FindSelfHierarchyIndex(List<RaycastResult> results)
+        {
+            for (int i = 0; i < results.Count; i++)
+            {
+                if (IsSelfOrChild(results[i].gameObject))
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
+        private static int FindReferenceIndex(List<RaycastResult> results, PointerEventData eventData)
+        {
+            GameObject reference = eventData.pointerCurrentRaycast.gameObject ??
+                                  eventData.pointerPress ??
+                                  eventData.pointerEnter;
+
+            if (reference == null)
+            {
+                return -1;
+            }
+
+            for (int i = 0; i < results.Count; i++)
+            {
+                if (results[i].gameObject == reference)
+                {
+                    return i;
+                }
+            }
+
+            return -1;
         }
 
         protected bool IsEligibleForPointer(bool requireLeftButton, PointerEventData eventData)
@@ -774,11 +765,13 @@ namespace MysticIsle.DreamEngine.UI
         /// <param name="eventData">The event data associated with the drag event.</param>
         public virtual void OnBeginDrag(PointerEventData eventData)
         {
+            if (Draggable)
+            {
+                canvasGroup.alpha = 0.6f; // Make the widget semi-transparent
+                canvasGroup.blocksRaycasts = false; // Allow the widget to pass through other UI elements
+            }
 
-            if (!Draggable) return;
-
-            canvasGroup.alpha = 0.6f; // Make the widget semi-transparent
-            canvasGroup.blocksRaycasts = false; // Allow the widget to pass through other UI elements
+            ForwardPointerEvent(eventData, ExecuteEvents.beginDragHandler);
         }
 
         /// <summary>
@@ -787,13 +780,16 @@ namespace MysticIsle.DreamEngine.UI
         /// <param name="eventData">The event data associated with the drag event.</param>
         public virtual void OnDrag(PointerEventData eventData)
         {
-            if (!Draggable) return;
-
-            if (Canvas != null)
+            if (Draggable && Canvas != null)
             {
-                RectTransform rectTransform = GetComponent<RectTransform>();
-                rectTransform.anchoredPosition += eventData.delta / Canvas.scaleFactor;
+                var targetRectTransform = RectTransform;
+                if (targetRectTransform != null)
+                {
+                    targetRectTransform.anchoredPosition += eventData.delta / Canvas.scaleFactor;
+                }
             }
+
+            ForwardPointerEvent(eventData, ExecuteEvents.dragHandler);
         }
 
         /// <summary>
@@ -802,10 +798,13 @@ namespace MysticIsle.DreamEngine.UI
         /// <param name="eventData">The event data associated with the drag event.</param>
         public virtual void OnEndDrag(PointerEventData eventData)
         {
-            if (!Draggable) return;
+            if (Draggable)
+            {
+                canvasGroup.alpha = 1.0f; // Restore the widget's opacity
+                canvasGroup.blocksRaycasts = true; // Restore the widget's ability to block raycasts
+            }
 
-            canvasGroup.alpha = 1.0f; // Restore the widget's opacity
-            canvasGroup.blocksRaycasts = true; // Restore the widget's ability to block raycasts
+            ForwardPointerEvent(eventData, ExecuteEvents.endDragHandler);
         }
 
         /// <summary>
@@ -814,13 +813,16 @@ namespace MysticIsle.DreamEngine.UI
         /// <param name="eventData">The event data associated with the drop event.</param>
         public virtual void OnDrop(PointerEventData eventData)
         {
-            if (!Draggable) return;
-
-            if (eventData.pointerDrag.TryGetComponent<Widget>(out var target))
+            if (Draggable)
             {
-                // Trigger the OnDropped event
-                OnDropped?.Invoke(this, target);
+                if (eventData.pointerDrag.TryGetComponent<Widget>(out var target))
+                {
+                    // Trigger the OnDropped event
+                    OnDropped?.Invoke(this, target);
+                }
             }
+
+            ForwardPointerEvent(eventData, ExecuteEvents.dropHandler);
         }
         #endregion
 
