@@ -120,9 +120,10 @@ namespace MysticIsle.DreamEngine.UI
         protected bool isSelected = false; // Indicates if the widget is selected
 
         /// <summary>
-        /// Tooltip key for the widget.
+        /// Tooltip texts for the widget (rendered sequentially).
         /// </summary>
-        public string TooltipKey;
+        [TitleGroup("Core", nameof(Widget)), ShowInInspector]
+        public string[] Tooltips;
 
         public bool Draggable { get; set; } = false; // Indicates if the widget is draggable
 
