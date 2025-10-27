@@ -119,11 +119,14 @@ namespace MysticIsle.DreamEngine.UI
         }
         protected bool isSelected = false; // Indicates if the widget is selected
 
+        [System.Obsolete("TooltipKey is deprecated. Use tooltipEntrys instead."), TitleGroup("Core", nameof(Widget)), ShowInInspector]
+        public string TooltipKey;
+
         /// <summary>
         /// Tooltip texts for the widget (rendered sequentially).
         /// </summary>
         [TitleGroup("Core", nameof(Widget)), ShowInInspector]
-        public string[] Tooltips;
+        public TooltipEntry[] tooltipEntrys;
 
         public bool Draggable { get; set; } = false; // Indicates if the widget is draggable
 
